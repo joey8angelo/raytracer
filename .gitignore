@@ -1,0 +1,69 @@
+# Compiled object files
+*.o
+*.obj
+
+# Precompiled headers
+*.gch
+*.pch
+
+# Compiled binaries
+*.exe
+*.out
+*.app
+*.dll
+*.so
+*.dylib
+
+# png
+*.png
+
+# Build directories
+build/
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+
+# Dependency directories
+deps/
+vendor/
+
+# IDE-specific files
+.vscode/
+.idea/
+*.suo
+*.user
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# CMake build files
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+*.cmake
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor temporary files
+*~
+*.swp
+*.swo
