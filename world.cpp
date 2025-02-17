@@ -1,17 +1,14 @@
 #include "world.h"
 #include "ray.h"
 
-#include "sphere.h" // TEMP
-World::World() : ambient_intensity(0), recursion_depth_limit(3) {
-	objects.push_back(new Sphere(vec3(0,0,0), 0.5));
-}
-
 World::~World() {
 	// delete background shader
 	// delete objects
 	for(size_t i = 0; i < objects.size(); i++)
 		delete objects[i];
 	// delete lights
+	for(size_t i = 0; i < lights.size(); i++)
+		delete lights[i];
 }
 
 Hit World::closest_intersection(const Ray& ray) {

@@ -4,10 +4,14 @@
 #include <ncurses.h>
 #include "world.h"
 
+#include "sphere.h" // TEMP
+#include "direction_light.h" // TEMP
+
 void dump_png(unsigned int*, int, int, const char*);
 void image_to_screen(unsigned int*, WINDOW* scr, int, int);
 void move_camera(World& world, int key);
 int keyboard(World& world);
+void build_world(World& world);
 
 const double PIXEL_AR = 1/2.35;
 
@@ -21,15 +25,17 @@ int main() {
 	std::cout << "w " << width << " h " << height << std::endl;
 	World world;
 	
-	// render the first frame of the world to a png
-	world.camera.set_pos_and_aim(vec3(2,0,0), vec3(0,0,0), vec3(0,0,1));
-	world.camera.focus(1, (double(width)/height) * PIXEL_AR, 50*(3.14159/180));
+	build_world(world);
+	
+	// render the first frame to a png
+	// taking into account the aspect ratio
+	// of a terminal character
+	world.camera.focus(1, (double(width)/height) * PIXEL_AR, 50*(pi/180));
 	world.camera.set_resolution(ivec2(width, height*(1/PIXEL_AR)));
 	world.render();
 	dump_png(world.camera.image, width, height*(1/PIXEL_AR), "image.png");
 	
 	// keep rendering the world to the screen
-	world.camera.focus(1, (double(width)/height) * PIXEL_AR, 50*(3.14159/180));
 	world.camera.set_resolution(ivec2(width, height));
 	while (true) {
 		keyboard(world);
@@ -44,6 +50,17 @@ int main() {
 	endwin();
 
 	return 0;
+}
+
+void build_world(World& world) {
+	// setup camera location
+	world.camera.set_pos_and_aim({2,0,0}, {0,0,0}, {0,0,1});
+	
+	// add sphere at 0,0,0
+	world.objects.push_back(new Sphere({0,0,0}, 0.5));
+
+	// place directional light pointing down
+	world.lights.push_back(new Direction_Light({0,0,-1}, {1,0,1}, 1));
 }
 
 int keyboard(World& world) {
