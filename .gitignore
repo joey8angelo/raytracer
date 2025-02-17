@@ -13,6 +13,8 @@
 *.dll
 *.so
 *.dylib
+raytracer
+raytracer_debug
 
 # png
 *.png

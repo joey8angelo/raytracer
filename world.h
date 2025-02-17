@@ -1,16 +1,19 @@
 #pragma once
 
+#include <vector>
 #include "vec.h"
 #include "camera.h"
+#include "object.h"
 
 class Ray;
+class Hit;
 
 class World {
 	public:
 	Camera camera;
 
 	//Shader* background_shader;
-	//std::vector<Object*> objects;
+	std::vector<Object*> objects;
 	//std::vector<Light*> lights;
 	vec3 ambient_color;
 	double ambient_intensity;
@@ -23,5 +26,5 @@ class World {
 	void render();
 	
 	vec3 cast_ray(const Ray& ray, int recursion_depth);
-	//Hit closest_intersection(const Ray& ray);
+	Hit closest_intersection(const Ray& ray);
 };
