@@ -4,11 +4,10 @@
 #include "vec.h"
 #include "camera.h"
 #include "object.h"
-#include "light.h"
 
 class Ray;
-class Hit;
 class Light;
+class Shader;
 
 class World {
 	public:

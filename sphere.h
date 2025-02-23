@@ -11,4 +11,6 @@ class Sphere : public Object {
 	
 	virtual Hit intersection(const Ray& ray) const override;
 	virtual vec3 normal(const vec3& point) const override;
+	virtual void move_dir(const vec3& vec)  override;
+	virtual void move_to(const vec3& vec)  override;
 };

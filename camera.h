@@ -14,6 +14,7 @@ class Camera {
 	vec2 image_size;
 	vec2 pixel_size;
 	ivec2 number_pixels;
+	double focal_dist;
 	unsigned int* image;
 
 	Camera();
@@ -21,7 +22,8 @@ class Camera {
 
 	void set_pos_and_aim(const vec3& pos, const vec3& look_at,
                              const vec3& sdup);
-	void look_to(const vec3& look_at);
+	void aim(const vec3& look_at);
+	void aim(const vec3& look_at, const vec3& sdup);
 
 	void focus(double focal_dist, double aspect_ratio, double fov);
 	void set_resolution(const ivec2& number_pixels_in);

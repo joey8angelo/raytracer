@@ -21,3 +21,12 @@ Hit Sphere::intersection(const Ray& ray) const {
 vec3 Sphere::normal(const vec3& point) const {
 	return (point - center).normalized();
 }
+
+void Sphere::move_dir(const vec3& vec) {
+	center += vec;
+}
+
+void Sphere::move_to(const vec3& vec) {
+	center = vec;
+}
+

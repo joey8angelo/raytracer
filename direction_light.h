@@ -8,7 +8,6 @@ class Direction_Light : public Light {
 			double brightness)
 			: Light(direction.normalized()*1e10, color, brightness) {}
 	virtual vec3 emitted_light(const vec3& vec) const {
-		(void)vec;
 		return color*brightness;
 	}
 };
