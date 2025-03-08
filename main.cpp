@@ -4,36 +4,35 @@
 #include <ncurses.h>
 #include "world.h"
 
-#include "sphere.h" // TEMP
-#include "direction_light.h" // TEMP
+#include "phong_shader.h"
+#include "sphere.h"
+#include "point_light.h"
 
 void dump_png(unsigned int*, int, int, const char*);
 void image_to_screen(unsigned int*, WINDOW* scr, int, int);
 void move_camera(World& world, int key);
 int keyboard(World& world);
-void build_world(World& world);
+void build_world(World& world, int width, int height);
+void ncurses_init();
 
 const double PIXEL_AR = 1/2.35;
 
 int main() {
-	initscr();
-	noecho();
-	nodelay(stdscr, TRUE);
+	ncurses_init();
 
 	int width, height;
 	getmaxyx(stdscr, height, width);
 	std::cout << "w " << width << " h " << height << std::endl;
-	World world;
 	
-	build_world(world);
+	World world;
+	build_world(world, width, height);
 	
 	// render the first frame to a png
 	// taking into account the aspect ratio
 	// of a terminal character
-	world.camera.focus(1, (double(width)/height) * PIXEL_AR, 50*(pi/180));
-	world.camera.set_resolution(ivec2(width, height*(1/PIXEL_AR)));
+	world.camera.set_resolution(ivec2(width*20, height*(1/PIXEL_AR)*20));
 	world.render();
-	dump_png(world.camera.image, width, height*(1/PIXEL_AR), "image.png");
+	dump_png(world.camera.image, width*20, height*(1/PIXEL_AR)*20, "image.png");
 	
 	// keep rendering the world to the screen
 	world.camera.set_resolution(ivec2(width, height));
@@ -48,19 +47,38 @@ int main() {
 	}
 	
 	endwin();
-
 	return 0;
 }
 
-void build_world(World& world) {
-	// setup camera location
-	world.camera.set_pos_and_aim({2,0,0}, {0,0,0}, {0,0,1});
-	
-	// add sphere at 0,0,0
-	world.objects.push_back(new Sphere({0,0,0}, 0.5));
+void ncurses_init() {
+	initscr();
+	noecho();
+	nodelay(stdscr, TRUE);
+	curs_set(0);
+	start_color();
 
-	// place directional light pointing down
-	world.lights.push_back(new Direction_Light({0,0,-1}, {1,0,1}, 1));
+	//init_pair(1, COLOR_RED, COLOR_BLACK);
+	//init_pair(2, COLOR_BLUE, COLOR_BLACK);
+	//init_pair(3, COLOR_GREEN, COLOR_BLACK);
+	//init_pair(4, COLOR_CYAN, COLOR_BLACK);
+	//init_pair(5, COLOR_YELLOW, COLOR_BLACK);
+	//init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
+	//init_pair(7, COLOR_WHITE, COLOR_BLACK);
+}
+
+void build_world(World& world, int width, int height) {
+	world.camera.focus(1, (double(width)/height) * PIXEL_AR, 70*(pi/180));
+	world.camera.set_pos_and_aim({6,0,0}, {0,0,0}, {0,0,1});
+	
+	Sphere* sphere = new Sphere({0,0,0}, 2.5);
+	sphere->shader = new Phong_Shader(world,{1,1,1},{1,1,1},{1,1,1},50);
+	world.objects.push_back(sphere);
+	
+	world.lights.push_back(new Point_Light({7,5,4}, {1,0,0}, 800));
+	//world.lights.push_back(new Point_Light({8,-9,4}, {0,0,1}, 800));
+
+	world.ambient_intensity = 0.2;
+	world.ambient_color = vec3(1,1,1);
 }
 
 int keyboard(World& world) {
@@ -78,16 +96,17 @@ int keyboard(World& world) {
 void move_camera(World& world, int key) {
 	switch(key){
 		case 'w':
-			world.camera.position += vec3(0,0,-0.01);
+			world.camera.position += world.camera.vertical*0.1;
 			break;
 		case 'a':
-			world.camera.position += vec3(0,-0.01,0);
+			world.camera.position -= world.camera.horizontal*0.1;
 			break;
 		case 's':
-			world.camera.position += vec3(0,0,0.01);
+			world.camera.position -= world.camera.vertical*0.1;
 			break;
 		case 'd':
-			world.camera.position += vec3(0,0.01,0);
+			world.camera.position += world.camera.horizontal*0.1;
 			break;
 	};
+	world.camera.aim({0,0,0});
 }

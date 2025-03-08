@@ -9,21 +9,21 @@ Camera::~Camera() {
 void Camera::set_pos_and_aim(const vec3& pos, const vec3& look_at,
                              const vec3& sdup) {
 	position = pos;
+	aim(look_at, sdup);
+}
+
+void Camera::aim(const vec3& look_at) {
+	aim(look_at, vertical);
+}
+void Camera::aim(const vec3& look_at, const vec3& sdup) {
 	look = (look_at - position).normalized();
 	horizontal = cross(look, sdup).normalized();
 	vertical = cross(horizontal, look).normalized();
 }
 
-void Camera::look_to(const vec3& look_at) {
-	look = (look_at - position).normalized();
-	horizontal = cross(look, vertical).normalized();
-	vertical = cross(horizontal, look).normalized();
-}
-
-void Camera::focus(double focal_dist, double aspect_ratio,
-		   double fov) {
-	image_position = position + look * focal_dist;
-    	double width = 2.0 * focal_dist * tan(.5 * fov);
+void Camera::focus(double focal_dist, double aspect_ratio, double fov) {
+	this->focal_dist = focal_dist;
+    	double width = 2.0 * focal_dist * tan(0.5 * fov);
     	double height = width / aspect_ratio;
     	image_size = vec2(width, height);
 }
@@ -38,10 +38,9 @@ void Camera::set_resolution(const ivec2& number_pixels_in) {
 	pixel_size = image_size / vec2(number_pixels);
 }
 vec3 Camera::world_position(const ivec2& index) {
-	vec3 result;
-    	result = image_position + cell_center(index)[0] * horizontal + cell_center(index)[1] * vertical;
-    	return result;
-
+    	return position + look * focal_dist +       // position of the image window
+               cell_center(index)[0] * horizontal + // horizontal component
+               cell_center(index)[1] * vertical;    // vertical component
 }
 
 vec2 Camera::cell_center(const ivec2& index) const {

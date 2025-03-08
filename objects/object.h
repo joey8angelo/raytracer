@@ -13,6 +13,13 @@ struct Hit {
 	double dist;
 };
 
+/* Abstract object
+ *
+ * intersection defines how a ray/object intersection works
+ * normal is the normal vector at a point on this object
+ * move_dir moves the object in the given direction
+ * move_to moves the object to the given point in space
+ */
 class Object {
 	public:
 	Shader* shader;

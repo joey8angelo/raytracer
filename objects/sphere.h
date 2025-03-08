@@ -1,7 +1,9 @@
 #pragma once
 
-#include "object.h"
+#include "objects/object.h"
 
+/* Sphere, defined by a point in space and a radius
+ * */
 class Sphere : public Object {
 	vec3 center;
 	double radius;

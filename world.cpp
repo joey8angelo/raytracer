@@ -1,5 +1,8 @@
 #include "world.h"
 #include "ray.h"
+#include "object.h"
+#include "shader.h"
+#include "light.h"
 
 World::~World() {
 	// delete background shader
@@ -30,6 +33,8 @@ void World::render() {
 }
 
 void World::render_pixel(const ivec2& index) {
+	if (index[0] == 15 && index[1] == 30)
+		std::cout << "debug pixel" << std::endl;
 	Ray ray;
 	ray.origin = camera.position;
 	ray.dir = (camera.world_position(index) - ray.origin).normalized();
@@ -38,10 +43,13 @@ void World::render_pixel(const ivec2& index) {
 }
 
 vec3 World::cast_ray(const Ray& ray, int recursion_depth) {
-	(void)recursion_depth; // TEMP
 	Hit hit = closest_intersection(ray);
-	if (hit.object)
-		return vec3(1,1,1); // call objects shader at ray.at(dist)
+	if (hit.object){
+		vec3 intersection = ray.at(hit.dist);
+		return hit.object->shader->shade(
+                	ray, intersection, hit.object->normal(
+				intersection), recursion_depth);
+	}
 	else
 		return vec3(0,0,0); // call background shader
 }

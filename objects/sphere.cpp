@@ -1,4 +1,4 @@
-#include "sphere.h"
+#include "objects/sphere.h"
 #include "ray.h"
 
 Hit Sphere::intersection(const Ray& ray) const {

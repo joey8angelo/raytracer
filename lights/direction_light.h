@@ -1,6 +1,6 @@
 #pragma once
 
-#include "light.h"
+#include "lights/light.h"
 
 class Direction_Light : public Light {
 	public:
