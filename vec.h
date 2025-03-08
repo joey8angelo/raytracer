@@ -54,6 +54,14 @@ struct vec
     vec& operator /= (const T& c)
     {for(int i = 0; i < n; i++) x[i] /= c; return *this;}
 
+    bool operator == (const vec& v) const {
+        for(int i = 0; i < n; i++) {
+            if (x[i] != v[i])
+                return false;
+        }
+        return true;
+    }
+
     vec operator + () const
     {return *this;}
 
@@ -157,3 +165,9 @@ typedef vec<double,2> vec2;
 typedef vec<double,3> vec3;
 typedef vec<int,2> ivec2;
 typedef vec<int,3> ivec3;
+
+struct vec3_hash {
+    size_t operator()(const ivec3& v) const {    
+        return v[0] ^ v[1] ^ v[2];
+    }
+};
