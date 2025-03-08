@@ -3,7 +3,7 @@
 #include <vector>
 #include "vec.h"
 #include "camera.h"
-#include "object.h"
+#include "objects/object.h"
 
 class Ray;
 class Light;
@@ -13,14 +13,15 @@ class World {
 	public:
 	Camera camera;
 
-	//Shader* background_shader;
+	Shader* background_shader;
 	std::vector<Object*> objects;
 	std::vector<Light*> lights;
 	vec3 ambient_color;
 	double ambient_intensity;
 	int recursion_depth_limit;
 
-	World() : ambient_intensity(0), recursion_depth_limit(3) {}
+	World() : background_shader(0), ambient_intensity(0), 
+              recursion_depth_limit(3) {}
 	~World();
 
 	void render_pixel(const ivec2& index);

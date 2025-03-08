@@ -1,12 +1,14 @@
 #include "world.h"
 #include "ray.h"
-#include "object.h"
-#include "shader.h"
-#include "light.h"
+#include "objects/object.h"
+#include "shaders/shader.h"
+#include "lights/light.h"
 
 World::~World() {
 	// delete background shader
-	// delete objects
+    if (background_shader)
+        delete background_shader;
+    // delete objects
 	for(size_t i = 0; i < objects.size(); i++)
 		delete objects[i];
 	// delete lights
@@ -33,8 +35,6 @@ void World::render() {
 }
 
 void World::render_pixel(const ivec2& index) {
-	if (index[0] == 15 && index[1] == 30)
-		std::cout << "debug pixel" << std::endl;
 	Ray ray;
 	ray.origin = camera.position;
 	ray.dir = (camera.world_position(index) - ray.origin).normalized();
@@ -51,5 +51,6 @@ vec3 World::cast_ray(const Ray& ray, int recursion_depth) {
 				intersection), recursion_depth);
 	}
 	else
-		return vec3(0,0,0); // call background shader
+		return background_shader->shade(ray, {0,0,0}, 
+                           {0,0,0}, recursion_depth);
 }

@@ -2,57 +2,50 @@
 #include <string>
 #include <ncurses.h>
 #include "vec.h"
-
-int colors[] = {COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE,
-                    COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE};
-
-//std::string chars = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
-
-//std::string chars = " .:-=+*#%@";
-
-//std::string chars = " .'`^\",:;Il!i~+-?]}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+#include "set_colors.h"
 
 std::string chars = " .,\"~!+:vcIow0XPR#*RB@";
 
-//std::string chars = "@&%QWNM0gB$#DR8mHXKAUbGOpV4d9h6PkqwSE2]ayjxY5Zoen[ult13If}C{iD|(7J)vTLs?z/*cr!+<>;=^,_:'-.` ";
-
-inline vec3 get_rgb(unsigned int color) {
-	return vec3(color>>24,(color>>16)&0xff,(color>>8)&0xff);
+inline ivec3 get_rgb(unsigned int color) {
+	return ivec3(color>>24,(color>>16)&0xff,(color>>8)&0xff);
 }
 
-char best_char(const vec3& color) {
+char best_char(const ivec3& color) {
     int brightness = (color[0] + color[1] + color[2]) / 3;
     int index = (brightness * (chars.size() - 2)) / 255;
     return chars[index];
 }
 
-int best_color(const vec3& color) {
-	int best_match = 0;
-	double best_distance = 1e9;
+int best_comp(int color) {
+    int incs[6] = {0, 95, 135, 175, 215, 255};
 
-	for (int i = 0; i < 8; i++) {
-        	short nr, ng, nb;
-        	color_content(colors[i], &nr, &ng, &nb);
+    int i = 0;
+    while (i < 5) {
+        int s = incs[i];
+        int b = incs[i+1];
 
-        	// Convert ncurses color (0-1000) to 0-255 range
-        	nr = (nr * 255) / 1000;
-        	ng = (ng * 255) / 1000;
-        	nb = (nb * 255) / 1000;
+        if (s <= color && color && color && color && color && color && color && color && color <= b) {
+            int s1 = std::abs(s - color);
+            int b1 = std::abs(b - color);
 
-        	double dist = sqrt(pow(color[0] - nr, 2) + 
-                              pow(color[1] - ng, 2) + 
-                              pow(color[2] - nb, 2));
-        	
-		if (dist < best_distance) {
-            		best_distance = dist;
-            		best_match = colors[i];
-        	}
-    	}
-	return best_match;
+            if (s1 < b1)
+                return s;
+            else
+                return b;
+        }
+        i += 1;
+    }
+    return 0;
+}
+
+int best_color(const ivec3& color) {
+    return mp[{best_comp(color[0]),
+               best_comp(color[1]),
+               best_comp(color[2])}];
 }
 
 void get_color_and_char(unsigned int in_color, int& out_color, char& ch) {
-	vec3 rgb = get_rgb(in_color);
+	ivec3 rgb = get_rgb(in_color);
 	out_color = best_color(rgb);
 	ch = best_char(rgb);
 }
@@ -60,13 +53,12 @@ void get_color_and_char(unsigned int in_color, int& out_color, char& ch) {
 void image_to_screen(unsigned int* data, WINDOW* scr, int width, int height) {
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
-			//if (i == 15 && j == 30)
-			//	std::cout << "debug" << std::endl;
 			int color;
 			char ch;
 			get_color_and_char(data[i*width + j], color, ch);
-			//wattron(scr, COLOR_PAIR(1));
+			wattron(scr, COLOR_PAIR(color));
 			mvwaddch(scr,height-i-1,j,ch);
+            wattroff(scr, COLOR_PAIR(color));
 		}
 	}
 }
