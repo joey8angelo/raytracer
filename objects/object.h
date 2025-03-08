@@ -1,0 +1,33 @@
+#pragma once
+
+#include "vec.h"
+
+static const double small_t = 1e-4;
+
+class Object;
+class Ray;
+class Shader;
+
+struct Hit {
+	const Object* object;
+	double dist;
+};
+
+/* Abstract object
+ *
+ * intersection defines how a ray/object intersection works
+ * normal is the normal vector at a point on this object
+ * move_dir moves the object in the given direction
+ * move_to moves the object to the given point in space
+ */
+class Object {
+	public:
+	Shader* shader;
+	Object() : shader(0) {}
+	virtual ~Object() {}
+	
+	virtual Hit intersection(const Ray& ray) const = 0;
+	virtual vec3 normal(const vec3& point) const = 0;
+	virtual void move_dir(const vec3& vec) = 0;
+	virtual void move_to(const vec3& vec) = 0;
+};
