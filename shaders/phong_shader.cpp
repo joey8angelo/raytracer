@@ -19,10 +19,9 @@ vec3 Phong_Shader::shade(const Ray& ray, const vec3& point,
 
 	for(size_t i = 0; i < world.lights.size(); i++) {
 		vec3 lr = world.lights[i]->position - point;
-		//vec3 lr = point - world.lights[i]->position;
 		Ray shadow;
 		shadow.origin = point + normal * 2 * small_t;
-		shadow.dir = lr.normalized();
+		shadow.set_dir(lr.normalized());
 
         if (debug) {
             std::cerr << "Shadow ray for light " << i;

@@ -37,14 +37,15 @@ void Camera::set_resolution(const ivec2& number_pixels_in) {
 	max = 0.5 * image_size;
 	pixel_size = image_size / vec2(number_pixels);
 }
-vec3 Camera::world_position(const ivec2& index) {
-    	return position + look * focal_dist +       // position of the image window
-               cell_center(index)[0] * horizontal + // horizontal component
-               cell_center(index)[1] * vertical;    // vertical component
+vec3 Camera::world_position(const ivec2& index, const vec2& offsets) {
+    vec2 p = cell_pos(index, offsets);	
+    return position + look * focal_dist + // position of the image window
+               p[0] * horizontal +        // horizontal component
+               p[1] * vertical;           // vertical component
 }
 
-vec2 Camera::cell_center(const ivec2& index) const {
-	return min+(vec2(index)+vec2(.5,.5))*pixel_size;
+vec2 Camera::cell_pos(const ivec2& index, const vec2& offsets) const {
+	return min+(vec2(index)+offsets)*pixel_size;
 }
 
 unsigned int Camera::pixel_color(const vec3& color) {

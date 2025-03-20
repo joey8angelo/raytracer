@@ -37,8 +37,25 @@ void World::render() {
 void World::render_pixel(const ivec2& index) {
 	Ray ray;
 	ray.origin = camera.position;
-	ray.dir = (camera.world_position(index) - ray.origin).normalized();
+	ray.set_dir((camera.world_position(index) - ray.origin).normalized());
 	vec3 color = cast_ray(ray, recursion_depth_limit);
+    if (antialiasing) {
+        for (int i = 0; i < 4; i++) {
+            vec2 off = {0,0};
+            if (!i%2)
+                off[0] = 0.25;
+            else
+                off[0] = 0.75;
+            if (i==0)
+                off[1] = 0.25;
+            else
+                off[1] = 0.75;
+            ray.set_dir((camera.world_position(index, off)
+				-ray.origin).normalized());
+            color += cast_ray(ray, recursion_depth_limit);
+        }
+        color /= 5;
+    }
 	camera.set_pixel(index, color);
 }
 

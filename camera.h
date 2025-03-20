@@ -28,8 +28,8 @@ class Camera {
 	void focus(double focal_dist, double aspect_ratio, double fov);
 	void set_resolution(const ivec2& number_pixels_in);
 	
-	vec3 world_position(const ivec2& index);
-	vec2 cell_center(const ivec2& index) const;
+	vec3 world_position(const ivec2& index, const vec2& offsets={.5,.5});
+	vec2 cell_pos(const ivec2& index, const vec2& offsets) const;
 
 	unsigned int pixel_color(const vec3& color);
 	void set_pixel(const ivec2& index, const vec3& color);

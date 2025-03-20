@@ -19,9 +19,10 @@ class World {
 	vec3 ambient_color;
 	double ambient_intensity;
 	int recursion_depth_limit;
+    bool antialiasing;
 
 	World() : background_shader(0), ambient_intensity(0), 
-              recursion_depth_limit(3) {}
+              recursion_depth_limit(3), antialiasing(false) {}
 	~World();
 
 	void render_pixel(const ivec2& index);

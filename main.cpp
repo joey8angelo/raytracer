@@ -4,20 +4,13 @@
 #include <ncurses.h>
 #include "world.h"
 
-#include "shaders/phong_shader.h"
-#include "shaders/flat_shader.h"
-#include "objects/sphere.h"
-#include "lights/point_light.h"
-#include "objects/plane.h"
-#include "objects/parallelogram.h"
-
 void dump_png(unsigned int*, int, int, const char*);
 void image_to_screen(unsigned int*, WINDOW* scr, int, int);
 void move_camera(World& world, int key);
 int keyboard(World& world);
-void build_world(World& world, int width, int height);
 void ncurses_init();
 void set_colors();
+void parse(World& world, int width, int height, double ar, const char* fn);
 
 bool debug = false;
 
@@ -26,15 +19,33 @@ int best_color(const ivec3& color);
 const double PIXEL_AR = 1/2.35;
 
 int main(int argc, char** argv) {
-	ncurses_init();
-
-	int width, height;
-	getmaxyx(stdscr, height, width);
-	//std::cout << "w " << width << " h " << height << std::endl;
-    //std::cout << "col" << best_color({81, 22, 184}) << std::endl;
+	int width, height, debugx, debugy;
 
 	World world;
-	build_world(world, width, height);
+
+	// enter debug mode
+	if (argc == 3) {
+		width = 300;
+		height = 300;
+		debugx = std::stoi(argv[1]);
+        debugy = std::stoi(argv[2]);
+
+		parse(world, width, height, 1, "scene1.txt");
+		world.camera.set_resolution(ivec2(width, height));
+		world.render();
+
+		debug = true;
+
+		world.render_pixel({debugx, debugy});
+		world.camera.set_pixel({debugx, debugy}, {1,0,0});
+		dump_png(world.camera.image, width, height, "image.png");
+		return 0;
+	}
+
+    ncurses_init();
+	getmaxyx(stdscr, height, width);
+
+	parse(world, width, height, PIXEL_AR, "scene1.txt");
 	
 	// render the first frame to a png
 	// taking into account the aspect ratio
@@ -42,24 +53,8 @@ int main(int argc, char** argv) {
 	world.camera.set_resolution(ivec2(width*10, height*(1/PIXEL_AR)*10));
 	world.render();
 
-    // cast a debug ray
-    int debugx = -1;
-    int debugy = -1;
-    if (argc == 3) {
-        debugx = std::stoi(argv[1]);
-        debugy = std::stoi(argv[2]);
-        debug = true;
-    }
-    if(debug) {
-        endwin();
-        world.render_pixel({debugx, debugy});
-        world.camera.set_pixel({debugx, debugy}, {1,1,1});
-    }
-
 	dump_png(world.camera.image, width*10, height*(1/PIXEL_AR)*10, "image.png");	
 
-    if(debug)
-        return 0;
     // keep rendering the world to the screen
 	world.camera.set_resolution(ivec2(width, height));
 	while (true) {
@@ -83,31 +78,6 @@ void ncurses_init() {
 	noecho();
 	nodelay(stdscr, TRUE);
 	curs_set(0);
-}
-
-void build_world(World& world, int width, int height) {
-	world.camera.focus(1, (double(width)/height) * PIXEL_AR, 70*(pi/180));
-	world.camera.set_pos_and_aim({10,0,0}, {0,0,0}, {0,0,1});
-	
-	Sphere* sphere = new Sphere({0,0,0}, 3);
-	sphere->shader = new Phong_Shader(world,{1,1,1},{1,1,1},{1,1,1},50);
-	world.objects.push_back(sphere);
-
-    Plane* plane = new Plane({0,0,-10}, {0,0,1});
-    plane->shader = new Phong_Shader(world, {1,1,1},{1,1,1},{1,1,1},50);
-    world.objects.push_back(plane);
-
-    Parallelogram* para = new Parallelogram({0,4,4},{0,0,5},{-4,-4,-3});
-    para->shader = new Phong_Shader(world, {1,1,1}, {1,1,1}, {1,1,1}, 50);
-    world.objects.push_back(para);
-	
-	world.lights.push_back(new Point_Light({7,5,4}, {1,0,0}, 800));
-	world.lights.push_back(new Point_Light({5,-9,4}, {0,0,1}, 800));
-    world.lights.push_back(new Point_Light({-4,-5,2}, {0,1,0}, 800));
-
-	world.ambient_intensity = 0;
-	world.ambient_color = vec3(1,1,1);
-    world.background_shader = new Flat_Shader(world, {0,0,0});
 }
 
 int keyboard(World& world) {
