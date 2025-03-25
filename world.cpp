@@ -3,6 +3,7 @@
 #include "objects/object.h"
 #include "shaders/shader.h"
 #include "lights/light.h"
+#include "util.h"
 
 World::~World() {
 	// delete background shader
@@ -35,27 +36,19 @@ void World::render() {
 }
 
 void World::render_pixel(const ivec2& index) {
+	vec3 color;
 	Ray ray;
 	ray.origin = camera.position;
-	ray.set_dir((camera.world_position(index) - ray.origin).normalized());
-	vec3 color = cast_ray(ray, recursion_depth_limit);
-    if (antialiasing) {
-        for (int i = 0; i < 4; i++) {
-            vec2 off = {0,0};
-            if (!i%2)
-                off[0] = 0.25;
-            else
-                off[0] = 0.75;
-            if (i==0)
-                off[1] = 0.25;
-            else
-                off[1] = 0.75;
-            ray.set_dir((camera.world_position(index, off)
-				-ray.origin).normalized());
-            color += cast_ray(ray, recursion_depth_limit);
-        }
-        color /= 5;
-    }
+	for (int i = 0; i < samples; i++) {
+		vec2 off;
+		if (i != 0) {
+			off = {xorshift_0_1(index[0], index[1], i)-0.5, 
+			       xorshift_0_1(index[1], index[0], i)-0.5};
+		}
+		ray.set_dir((camera.world_position(index, off)-ray.origin).normalized());
+		color += cast_ray(ray, recursion_depth_limit);
+	}
+	color /= samples;
 	camera.set_pixel(index, color);
 }
 

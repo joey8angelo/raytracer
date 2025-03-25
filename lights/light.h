@@ -2,6 +2,8 @@
 
 #include "vec.h"
 
+extern bool debug;
+
 class Light {
 	public:
 	vec3 position;

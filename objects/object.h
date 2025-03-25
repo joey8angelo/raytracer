@@ -3,6 +3,7 @@
 #include "vec.h"
 
 static const double small_t = 1e-4;
+extern bool debug;
 
 class Object;
 class Ray;

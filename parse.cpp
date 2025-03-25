@@ -18,7 +18,7 @@ T get(std::unordered_map<std::string, T> m, std::string s) {
     return m[s];
 }
 
-void parse(World& world, int width, int height, double ar, const char* fn) {
+void parse_scene(World& world, int width, int height, double ar, const char* fn) {
     std::ifstream f(fn);
     std::cout << "open " << fn << std::endl;
 
@@ -91,7 +91,7 @@ void parse(World& world, int width, int height, double ar, const char* fn) {
             ss>>world.recursion_depth_limit;
             assert(ss);
         } else if (entry=="antialiasing") {
-            ss>>world.antialiasing;
+            ss>>world.samples;
             assert(ss);
         }else {
             std::cout << "Cannot parse " << b << std::endl;
@@ -100,4 +100,6 @@ void parse(World& world, int width, int height, double ar, const char* fn) {
     }
     if (!world.background_shader)
         world.background_shader = new Flat_Shader(world, {0,0,0});
+
+    f.close();
 }

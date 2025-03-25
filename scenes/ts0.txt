@@ -1,0 +1,5 @@
+color white 1 1 1
+flat_shader white_shader white
+sphere 0 0 0 1 white_shader
+recursion_depth 1
+camera 0 4 6 0 0 0 0 1 0 70

@@ -1,8 +1,9 @@
 #include <iostream>
-#include <string>
+#include <cstring>
 #include <unistd.h>
 #include <ncurses.h>
 #include "world.h"
+#include "util.h"
 
 void dump_png(unsigned int*, int, int, const char*);
 void image_to_screen(unsigned int*, WINDOW* scr, int, int);
@@ -10,27 +11,35 @@ void move_camera(World& world, int key);
 int keyboard(World& world);
 void ncurses_init();
 void set_colors();
-void parse(World& world, int width, int height, double ar, const char* fn);
-
-bool debug = false;
-
+void parse_scene(World& world, int width, int height, double ar, const char* fn);
+void parse_args(int argc, char** argv, int& width, int& height, int& debugx, int& debugy, char*& scene, char*& output);
 int best_color(const ivec3& color);
 
+void usage() {
+	std::cerr << "usage: raytracer [-f input_scene] [-d width height debug_x debug_y] [-o output_file]\n";
+	exit(1);
+}
+
+bool debug = false;
 const double PIXEL_AR = 1/2.35;
 
 int main(int argc, char** argv) {
 	int width, height, debugx, debugy;
+	debugx = debugy = -1;
+	char* scene = 0;
+	char* output = 0;
+
+	parse_args(argc, argv, width, height, debugx, debugy, scene, output);
+
+	if (scene == 0) {
+		usage();
+	}
 
 	World world;
 
 	// enter debug mode
-	if (argc == 3) {
-		width = 300;
-		height = 300;
-		debugx = std::stoi(argv[1]);
-        debugy = std::stoi(argv[2]);
-
-		parse(world, width, height, 1, "scene1.txt");
+	if (debugx != -1) {
+		parse_scene(world, width, height, 1, scene);
 		world.camera.set_resolution(ivec2(width, height));
 		world.render();
 
@@ -38,22 +47,23 @@ int main(int argc, char** argv) {
 
 		world.render_pixel({debugx, debugy});
 		world.camera.set_pixel({debugx, debugy}, {1,0,0});
-		dump_png(world.camera.image, width, height, "image.png");
+		dump_png(world.camera.image, width, height, "debug.png");
 		return 0;
 	}
 
     ncurses_init();
 	getmaxyx(stdscr, height, width);
 
-	parse(world, width, height, PIXEL_AR, "scene1.txt");
+	parse_scene(world, width, height, PIXEL_AR, scene);
 	
-	// render the first frame to a png
+	// if output was set render the first frame to a png
 	// taking into account the aspect ratio
 	// of a terminal character
-	world.camera.set_resolution(ivec2(width*10, height*(1/PIXEL_AR)*10));
-	world.render();
-
-	dump_png(world.camera.image, width*10, height*(1/PIXEL_AR)*10, "image.png");	
+	if (output) {
+		world.camera.set_resolution(ivec2(width*10, height*10*(1/PIXEL_AR)));
+		world.render();
+		dump_png(world.camera.image, width*10, height*10*(1/PIXEL_AR), output);
+	}
 
     // keep rendering the world to the screen
 	world.camera.set_resolution(ivec2(width, height));
@@ -69,6 +79,27 @@ int main(int argc, char** argv) {
 	
 	endwin();
 	return 0;
+}
+
+void parse_args(int argc, char** argv, int& width, int& height, 
+	int& debugx, int& debugy, char*& scene, char*& output) {
+	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-f")==0 && i+1 < argc) {
+			scene = argv[i+1];
+			i++;
+		} else if (strcmp(argv[i], "-d")==0 && i+4 < argc) {
+			width = std::stoi(argv[i+1]);
+			height = std::stoi(argv[i+2]);
+			debugx = std::stoi(argv[i+3]);
+			debugy = std::stoi(argv[i+4]);
+			i += 4;
+		} else if (strcmp(argv[i], "-o")==0 && i+1 < argc) {
+			output = argv[i+1];
+			i++;
+		} else {
+			usage();
+		}
+	}
 }
 
 void ncurses_init() {
