@@ -8,10 +8,10 @@ vec3 Phong_Shader::shade(const Ray& ray, const vec3& point,
 	const vec3& normal, int recursion_depth) const {
 	
     if (debug) {
-        std::cerr << "Phong Shader:" << std::endl;
-        std::cerr << "  ray: " << ray.origin << ", " << ray.dir << std::endl;
-        std::cerr << "  point: " << point << std::endl;
-        std::cerr << "  normal: " << normal << std::endl;
+        std::cout << "[Phong_Shader::shade]" << std::endl;
+        std::cout << "  ray: " << ray.origin << ", " << ray.dir << std::endl;
+        std::cout << "  point: " << point << std::endl;
+        std::cout << "  normal: " << normal << std::endl;
     }
 
     vec3 color = ambient_color * world.ambient_color 
@@ -24,14 +24,15 @@ vec3 Phong_Shader::shade(const Ray& ray, const vec3& point,
 		shadow.set_dir(lr.normalized());
 
         if (debug) {
-            std::cerr << "Shadow ray for light " << i;
-            std::cerr << ": " << shadow.origin << ", " << shadow.dir << std::endl;
+            std::cout << "[Phong_Shader] Shadow ray for light " << i;
+            std::cout << ": " << shadow.origin << ", " << shadow.dir << std::endl;
         }
 
 		Hit hit = world.closest_intersection(shadow);
 		if (hit.object && hit.dist < lr.magnitude()){
             if (debug)
-                std::cerr << "Object in the way, shade" << std::endl;
+                std::cout << "[Phong_Shader] Object in the way, shade" 
+                          << std::endl;
 			continue;
         }
 

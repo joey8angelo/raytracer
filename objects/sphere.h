@@ -12,7 +12,7 @@ class Sphere : public Object {
 		: center(center), radius(radius) {}
 	
 	virtual Hit intersection(const Ray& ray) const override;
-	virtual vec3 normal(const vec3& point) const override;
+	virtual vec3 normal(const vec3& point, size_t face_idx) const override;
 	virtual void move_dir(const vec3& vec)  override;
 	virtual void move_to(const vec3& vec)  override;
 };

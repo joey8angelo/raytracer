@@ -50,15 +50,17 @@ void get_color_and_char(unsigned int in_color, int& out_color, char& ch) {
 	ch = best_char(rgb);
 }
 
-void image_to_screen(unsigned int* data, WINDOW* scr, int width, int height) {
+void image_to_window(unsigned int* data, WINDOW* win, int width, int height) {
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
+            if (i >= height-3 && j < 20)
+                continue;
 			int color;
 			char ch;
 			get_color_and_char(data[i*width + j], color, ch);
-			wattron(scr, COLOR_PAIR(color));
-			mvwaddch(scr,height-i-1,j,ch);
-            wattroff(scr, COLOR_PAIR(color));
+			wattron(win, COLOR_PAIR(color));
+			mvwaddch(win,height-i-1,j,ch);
+            wattroff(win, COLOR_PAIR(color));
 		}
 	}
 }

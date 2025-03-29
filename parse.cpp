@@ -7,6 +7,7 @@
 #include "shaders/flat_shader.h"
 #include "objects/sphere.h"
 #include "objects/plane.h"
+#include "objects/mesh.h"
 #include "lights/point_light.h"
 #include "lights/direction_light.h"
 
@@ -20,8 +21,6 @@ T get(std::unordered_map<std::string, T> m, std::string s) {
 
 void parse_scene(World& world, int width, int height, double ar, const char* fn) {
     std::ifstream f(fn);
-    std::cout << "open " << fn << std::endl;
-
     std::string b;
 
     std::unordered_map<std::string, vec3> colors;
@@ -31,7 +30,7 @@ void parse_scene(World& world, int width, int height, double ar, const char* fn)
         std::stringstream ss(b);
         std::string entry, name, s0,s1,s2;
         vec3 u,v,w;
-        double d0;
+        double d0,d1;
 
         if (!(ss>>entry) || !entry.size() || entry[0]=='#') continue;
 
@@ -45,12 +44,18 @@ void parse_scene(World& world, int width, int height, double ar, const char* fn)
             Object* o = new Sphere(u, d0);
             o->shader = get(shaders, s0);
             world.objects.push_back(o);
-        }else if (entry=="plane") {
+        } else if (entry=="plane") {
             ss>>u>>v>>s0;
             assert(ss);
             Object* o = new Plane(u,v);
             o->shader = get(shaders, s0);
             world.objects.push_back(o);
+        } else if (entry=="mesh") {
+            ss>>u>>d0>>d1>>s0>>s1;
+            assert(ss);
+            Object* o = new Mesh(s0.c_str(), u, (pi/180)*d0, (pi/180)*d1);
+            o->shader = get(shaders, s1);
+            world.objects.push_back(o);  
         } else if (entry=="flat_shader") {
             ss>>name>>s0;
             assert(ss);

@@ -6,14 +6,18 @@
 #include "util.h"
 
 void dump_png(unsigned int*, int, int, const char*);
-void image_to_screen(unsigned int*, WINDOW* scr, int, int);
+void image_to_window(unsigned int*, WINDOW* win, int, int);
 void move_camera(World& world, int key);
 int keyboard(World& world);
 void ncurses_init();
 void set_colors();
-void parse_scene(World& world, int width, int height, double ar, const char* fn);
-void parse_args(int argc, char** argv, int& width, int& height, int& debugx, int& debugy, char*& scene, char*& output);
+void parse_scene(World& world, int width, int height, double ar, 
+        const char* fn);
+void parse_args(int argc, char** argv, int& width, int& height, 
+        int& debugx, int& debugy, char*& scene, char*& output);
 int best_color(const ivec3& color);
+WINDOW* create_window(int width, int height, int x, int y);
+
 
 void usage() {
 	std::cerr << "usage: raytracer [-f input_scene] [-d width height debug_x debug_y] [-o output_file]\n";
@@ -52,8 +56,9 @@ int main(int argc, char** argv) {
 	}
 
     ncurses_init();
-	getmaxyx(stdscr, height, width);
+    WINDOW* cam_win = create_window(20, 3, 0, 0);
 
+	getmaxyx(stdscr, height, width);
 	parse_scene(world, width, height, PIXEL_AR, scene);
 	
 	// if output was set render the first frame to a png
@@ -68,13 +73,23 @@ int main(int argc, char** argv) {
     // keep rendering the world to the screen
 	world.camera.set_resolution(ivec2(width, height));
 	while (true) {
-		keyboard(world);
+		// handle keyboard inputs
+        keyboard(world);
 
+        // render the world
 		world.render();
-		image_to_screen(world.camera.image, stdscr, width, height);
+        // render the camera image to stdscr
+		image_to_window(world.camera.image, stdscr, width, height);
 
-		refresh();	
-		usleep(100);
+        // render info to camera window
+        mvwprintw(cam_win,1,1,"%.2f %.2f %.2f", world.camera.position[0], 
+                world.camera.position[1], world.camera.position[2]);
+		
+        // refresh windows
+        refresh();
+        wrefresh(cam_win);
+
+		//usleep(100);
 	}
 	
 	endwin();
@@ -84,7 +99,7 @@ int main(int argc, char** argv) {
 void parse_args(int argc, char** argv, int& width, int& height, 
 	int& debugx, int& debugy, char*& scene, char*& output) {
 	for (int i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-f")==0 && i+1 < argc) {
+		if (strcmp(argv[i], "-i")==0 && i+1 < argc) {
 			scene = argv[i+1];
 			i++;
 		} else if (strcmp(argv[i], "-d")==0 && i+4 < argc) {
@@ -94,7 +109,7 @@ void parse_args(int argc, char** argv, int& width, int& height,
 			debugy = std::stoi(argv[i+4]);
 			i += 4;
 		} else if (strcmp(argv[i], "-o")==0 && i+1 < argc) {
-			output = argv[i+1];
+            output = argv[i+1];
 			i++;
 		} else {
 			usage();
@@ -109,6 +124,7 @@ void ncurses_init() {
 	noecho();
 	nodelay(stdscr, TRUE);
 	curs_set(0);
+    keypad(stdscr, TRUE);
 }
 
 int keyboard(World& world) {
@@ -117,8 +133,10 @@ int keyboard(World& world) {
 	if (ch == ERR)
 		return 0;
         
-	if (ch == 'w' || ch == 'a' || ch == 's' || ch == 'd')
+	if (ch == 'w' || ch == 'a' || ch == 's' || ch == 'd' ||
+        ch == KEY_UP || ch == KEY_DOWN) {
 		move_camera(world, ch);
+    }
 
 	return 1;
 }
@@ -137,6 +155,18 @@ void move_camera(World& world, int key) {
 		case 'd':
 			world.camera.position += world.camera.horizontal*0.1;
 			break;
-	};
+        case KEY_UP:
+            world.camera.position += world.camera.look*0.1;
+            break;
+        case KEY_DOWN:
+            world.camera.position -= world.camera.look*0.1;
+            break;
+    }
 	world.camera.aim({0,0,0});
+}
+
+WINDOW* create_window(int width, int height, int x, int y) {
+    WINDOW* win = newwin(height, width, y, x);
+    box(win, 0, 0);
+    return win;
 }

@@ -58,7 +58,7 @@ vec3 World::cast_ray(const Ray& ray, int recursion_depth) {
 		vec3 intersection = ray.at(hit.dist);
 		return hit.object->shader->shade(
                 	ray, intersection, hit.object->normal(
-				intersection), recursion_depth);
+					intersection, hit.face), recursion_depth);
 	}
 	else
 		return background_shader->shade(ray, {0,0,0}, 

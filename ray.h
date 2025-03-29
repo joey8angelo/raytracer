@@ -17,7 +17,7 @@ struct Ray {
 	}
 
 	void set_inv_dir() {
-		inv_dir = vec3(1.0/dir[0], 1.0/dir[1], 1.0/dir[2]);
+		inv_dir = vec3(1.0/dir[0], 1.0/dir[1], 1.0/dir[2]).normalized();
 	}
 
 	void set_dir(const vec3& v) {
@@ -25,3 +25,4 @@ struct Ray {
 		set_inv_dir();
 	}
 };
+

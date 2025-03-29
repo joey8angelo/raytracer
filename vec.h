@@ -26,6 +26,9 @@ struct vec
     vec(const T& a, const T& b, const T& c)
     {assert(n == 3);x[0]=a;x[1]=b;x[2]=c;}
 
+    vec(const T& a, const T& b, const T& c, const T& d)
+    {assert(n == 4);x[0]=a;x[1]=b;x[2]=c;x[3]=d;}
+
     template<class U>
     explicit vec(const vec<U,n>& v)
     {for(int i = 0; i < n; i++) x[i] = (T)v.x[i];}
@@ -163,6 +166,7 @@ std::istream& operator >> (std::istream& in, vec<T,n> & u)
 
 typedef vec<double,2> vec2;
 typedef vec<double,3> vec3;
+typedef vec<double,4> vec4;
 typedef vec<int,2> ivec2;
 typedef vec<int,3> ivec3;
 
