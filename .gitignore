@@ -42,15 +42,6 @@ vendor/
 *.vcxproj.filters
 *.vcxproj.user
 
-# CMake build files
-CMakeCache.txt
-CMakeFiles/
-CMakeScripts/
-Makefile
-cmake_install.cmake
-install_manifest.txt
-*.cmake
-
 # Logs and databases
 *.log
 *.sql
