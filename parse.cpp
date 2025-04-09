@@ -5,6 +5,7 @@
 #include "world.h"
 #include "shaders/phong_shader.h"
 #include "shaders/flat_shader.h"
+#include "shaders/normal_shader.h"
 #include "objects/sphere.h"
 #include "objects/plane.h"
 #include "objects/mesh.h"
@@ -67,6 +68,10 @@ void parse_scene(World& world, int width, int height, double ar, const char* fn)
             vec3 c1 = get(colors, s1);
             vec3 c2 = get(colors, s2);
             shaders[name] = new Phong_Shader(world, c0, c1, c2, d0);
+        } else if (entry=="normal_shader") {
+            ss>>name;
+            assert(ss);
+            shaders[name] = new Normal_Shader(world);
         } else if (entry=="point_light") {
             ss>>u>>s0>>d0;
             assert(ss);

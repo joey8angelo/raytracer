@@ -1,18 +1,19 @@
-camera 3 0 0 0 0 0 0 0 1 70
+camera 0 0 5 0 0 0 0 0 1 50
 color white 1 1 1
-phong_shader white_phong white white white 50
-# sphere 0 0 0 0.5 white_phong
-mesh 0 0 0 0 90 hedron.obj white_phong
-# plane 0 0 -10 0 0 1 white_phong
 color red 1 0 0
 color green 0 1 0
 color blue 0 0 1
-point_light 3 0 0 red 200
-point_light 0 3 0 blue 200
-point_light 0 0 3 green 200
-# direction_light 0 1 1 white 0.8
+color yellow 1 1 0
+color magenta 1 0 1
+phong_shader white_shader white white white 0
+normal_shader s_norm
+mesh 0 0 0 0 0 suzanne.obj white_shader
+# sphere 0 0 0 1 white_shader
+point_light 10 4 -3 white 400
+point_light 3 10 2 red 400
+# point_light 0 -10 0 green 100
+# point_light -10 0 0 magenta 100
+# point_light 0 0 -10 blue 100
+# point_light 0 0 10 yellow 100
 # ambient_light white 0.2
-color cbk 0.4 0.4 0.7
-flat_shader bk cbk
-background bk 
-antialiasing 1
+antialiasing 2

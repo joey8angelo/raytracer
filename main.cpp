@@ -14,7 +14,7 @@ void set_colors();
 void parse_scene(World& world, int width, int height, double ar, 
         const char* fn);
 void parse_args(int argc, char** argv, int& width, int& height, 
-        int& debugx, int& debugy, char*& scene, char*& output);
+        int& debugx, int& debugy, char*& scene, char*& output, bool& dump);
 int best_color(const ivec3& color);
 WINDOW* create_window(int width, int height, int x, int y);
 
@@ -32,8 +32,10 @@ int main(int argc, char** argv) {
 	debugx = debugy = -1;
 	char* scene = 0;
 	char* output = 0;
+    bool dump = false;
 
-	parse_args(argc, argv, width, height, debugx, debugy, scene, output);
+	parse_args(argc, argv, width, height, 
+            debugx, debugy, scene, output, dump);
 
 	if (scene == 0) {
 		usage();
@@ -64,17 +66,32 @@ int main(int argc, char** argv) {
 	// if output was set render the first frame to a png
 	// taking into account the aspect ratio
 	// of a terminal character
-	if (output) {
+	if (output && !dump) {
 		world.camera.set_resolution(ivec2(width*10, height*10*(1/PIXEL_AR)));
 		world.render();
 		dump_png(world.camera.image, width*10, height*10*(1/PIXEL_AR), output);
 	}
+
+    int t = 0;
 
     // keep rendering the world to the screen
 	world.camera.set_resolution(ivec2(width, height));
 	while (true) {
 		// handle keyboard inputs
         keyboard(world);
+
+        // if we want to dump a sequence of images to every 10th frame
+        if (dump && t%10==0) {
+            int c = 1;
+            world.camera.set_resolution(ivec2(width*c, height*c*(1/PIXEL_AR)));
+            world.render();
+            std::string nm = std::to_string(t/10);
+            std::string zs = std::string(4-nm.size(), '0');
+            std::string fn = std::string(output) + zs + nm + ".png";
+            dump_png(world.camera.image, width*c, height*c*(1/PIXEL_AR), 
+                    fn.c_str());
+            world.camera.set_resolution(ivec2(width, height));
+        }
 
         // render the world
 		world.render();
@@ -89,15 +106,15 @@ int main(int argc, char** argv) {
         refresh();
         wrefresh(cam_win);
 
-		//usleep(100);
-	}
+	    t++;
+    }
 	
 	endwin();
 	return 0;
 }
 
 void parse_args(int argc, char** argv, int& width, int& height, 
-	int& debugx, int& debugy, char*& scene, char*& output) {
+	int& debugx, int& debugy, char*& scene, char*& output, bool& dump) {
 	for (int i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-i")==0 && i+1 < argc) {
 			scene = argv[i+1];
@@ -111,6 +128,10 @@ void parse_args(int argc, char** argv, int& width, int& height,
 		} else if (strcmp(argv[i], "-o")==0 && i+1 < argc) {
             output = argv[i+1];
 			i++;
+        } else if (strcmp(argv[i], "-O")==0 && i+1 < argc) {
+            output = argv[i+1];
+            dump=true;
+            i++;
 		} else {
 			usage();
 		}
@@ -134,7 +155,7 @@ int keyboard(World& world) {
 		return 0;
         
 	if (ch == 'w' || ch == 'a' || ch == 's' || ch == 'd' ||
-        ch == KEY_UP || ch == KEY_DOWN) {
+        ch == KEY_UP || ch == KEY_DOWN || ch == KEY_LEFT || ch == KEY_RIGHT) {
 		move_camera(world, ch);
     }
 
@@ -142,27 +163,45 @@ int keyboard(World& world) {
 }
 
 void move_camera(World& world, int key) {
+    static double rx = 0;
+    static double ry = 0;
+    const double speed = 0.1;
+    const double slow = 0.05;
+    vec3 p;
 	switch(key){
 		case 'w':
-			world.camera.position += world.camera.vertical*0.1;
+			world.camera.position += world.camera.look*speed;
 			break;
 		case 'a':
-			world.camera.position -= world.camera.horizontal*0.1;
+			world.camera.position -= world.camera.horizontal*speed;
 			break;
 		case 's':
-			world.camera.position -= world.camera.vertical*0.1;
+			world.camera.position -= world.camera.look*speed;
 			break;
 		case 'd':
-			world.camera.position += world.camera.horizontal*0.1;
+			world.camera.position += world.camera.horizontal*speed;
 			break;
         case KEY_UP:
-            world.camera.position += world.camera.look*0.1;
+            p = world.camera.position;
+            p += world.camera.look+world.camera.vertical*slow;
+            world.camera.aim(p);
             break;
         case KEY_DOWN:
-            world.camera.position -= world.camera.look*0.1;
+            p = world.camera.position;
+            p += world.camera.look-world.camera.vertical*slow;
+            world.camera.aim(p);
+            break;
+        case KEY_LEFT:
+            p = world.camera.position;
+            p += world.camera.look-world.camera.horizontal*slow;
+            world.camera.aim(p);
+            break;
+        case KEY_RIGHT:
+            p = world.camera.position;
+            p += world.camera.look+world.camera.horizontal*slow;
+            world.camera.aim(p);
             break;
     }
-	world.camera.aim({0,0,0});
 }
 
 WINDOW* create_window(int width, int height, int x, int y) {
