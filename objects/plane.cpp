@@ -15,10 +15,6 @@ vec3 Plane::normal(const vec3& point, size_t face_idx) const {
     return norm;
 }
 
-void Plane::move_dir(const vec3& vec) {
-    p += vec;
-}
-
-void Plane::move_to(const vec3& vec) {
-    p = vec;
+vec3 Plane::center() const {
+    return p;
 }

@@ -12,15 +12,26 @@
 #include "lights/point_light.h"
 #include "lights/direction_light.h"
 
-
 template<class T>
-T get(std::unordered_map<std::string, T> m, std::string s) {
+bool get(std::unordered_map<std::string, T> m, std::string s, T& res) {
     auto r = m.find(s);
-    assert(r != m.end());
-    return m[s];
+    if (r == m.end()) {
+        std::cerr << "Error: " << s << " not found\n";
+        return false;
+    }
+    res = m[s];
+    return true;
 }
 
-void parse_scene(World& world, int width, int height, double ar, const char* fn) {
+bool ssa(const std::stringstream& ss) {
+    if (!ss) {
+        std::cerr << "Error: Cannot parse input file\n";
+        return false;
+    }
+    return true;
+}
+
+bool parse_scene(World& world, int width, int height, double ar, const char* fn) {
     std::ifstream f(fn);
     std::string b;
 
@@ -31,85 +42,93 @@ void parse_scene(World& world, int width, int height, double ar, const char* fn)
         std::stringstream ss(b);
         std::string entry, name, s0,s1,s2;
         vec3 u,v,w;
-        double d0,d1;
+        double d0,d1,d2;
 
         if (!(ss>>entry) || !entry.size() || entry[0]=='#') continue;
 
         if (entry=="color") {
             ss>>name>>u;
-            assert(ss);
+            if (!ssa(ss)) return false;
             colors[name] = u;
         } else if (entry=="sphere") {
             ss>>u>>d0>>s0;
-            assert(ss);
+            if (!ssa(ss)) return false;
             Object* o = new Sphere(u, d0);
-            o->shader = get(shaders, s0);
+            if (!get(shaders, s0, o->shader)) return false;
             world.objects.push_back(o);
         } else if (entry=="plane") {
             ss>>u>>v>>s0;
-            assert(ss);
+            if (!ssa(ss)) return false;
             Object* o = new Plane(u,v);
-            o->shader = get(shaders, s0);
+            if (!get(shaders, s0, o->shader)) return false;
             world.objects.push_back(o);
         } else if (entry=="mesh") {
-            ss>>u>>d0>>d1>>s0>>s1;
-            assert(ss);
-            Object* o = new Mesh(s0.c_str(), u, (pi/180)*d0, (pi/180)*d1);
-            o->shader = get(shaders, s1);
+            ss>>u>>d0>>d1>>d2>>s0>>s1;
+            if (!ssa(ss)) return false;
+            Object* o = new Mesh(s0.c_str(), u, (pi/180)*d0, (pi/180)*d1, (pi/180)*d2);
+            if (!get(shaders, s1, o->shader)) return false;
             world.objects.push_back(o);  
         } else if (entry=="flat_shader") {
             ss>>name>>s0;
-            assert(ss);
-            shaders[name] = new Flat_Shader(world, get(colors, s0));
+            if (!ssa(ss)) return false;
+            vec3 t;
+            if (!get(colors, s0, t)) return false;
+            shaders[name] = new Flat_Shader(world, t);
         } else if (entry=="phong_shader") {
             ss>>name>>s0>>s1>>s2>>d0;
-            assert(ss);
-            vec3 c0 = get(colors, s0);
-            vec3 c1 = get(colors, s1);
-            vec3 c2 = get(colors, s2);
+            if (!ssa(ss)) return false;
+            vec3 c0, c1, c2;
+            if (!get(colors, s0, c0)) return false;
+            if (!get(colors, s1, c1)) return false;
+            if (!get(colors, s2, c2)) return false;
             shaders[name] = new Phong_Shader(world, c0, c1, c2, d0);
         } else if (entry=="normal_shader") {
             ss>>name;
-            assert(ss);
+            if (!ssa(ss)) return false;
             shaders[name] = new Normal_Shader(world);
         } else if (entry=="point_light") {
             ss>>u>>s0>>d0;
-            assert(ss);
-            Light* l = new Point_Light(u, get(colors, s0), d0);
+            if (!ssa(ss)) return false;
+            vec3 t;
+            if (!get(colors, s0, t)) return false;
+            Light* l = new Point_Light(u, t, d0);
             world.lights.push_back(l);
         } else if (entry=="direction_light") {
             ss>>u>>s0>>d0;
-            assert(ss);
-            Light* l = new Direction_Light(u, get(colors, s0), d0);
+            if (!ssa(ss)) return false;
+            vec3 t;
+            if (!get(colors, s0, t)) return 3;
+            Light* l = new Direction_Light(u, t, d0);
             world.lights.push_back(l);
         } else if (entry=="ambient_light") {
             ss>>s0>>d0;
-            assert(ss);
-            world.ambient_color = get(colors, s0);
+            if (!ssa(ss)) return false;
+            if (!get(colors, s0, world.ambient_color)) return 3;
             world.ambient_intensity = d0;
         } else if (entry=="camera") {
             ss>>u>>v>>w>>d0;
-            assert(ss);
+            if (!ssa(ss)) return false;
             world.camera.set_pos_and_aim(u,v,w);
             world.camera.focus(1, (double(width)/height) * ar,
                     d0*(pi/180));
         } else if (entry=="background") {
             ss>>s0;
-            assert(ss);
-            world.background_shader = get(shaders, s0);
+            if (!ssa(ss)) return false;
+            if (!get(shaders, s0, world.background_shader)) return 3;
         } else if (entry=="recursion_depth") {
             ss>>world.recursion_depth_limit;
-            assert(ss);
+            if (!ssa(ss)) return false;
         } else if (entry=="antialiasing") {
             ss>>world.samples;
-            assert(ss);
+            if (!ssa(ss)) return false;
         }else {
-            std::cout << "Cannot parse " << b << std::endl;
-            exit(1);
+            std::cerr << "Error: Unknown entry " << entry << "\n";
+            return false;
         }
     }
     if (!world.background_shader)
         world.background_shader = new Flat_Shader(world, {0,0,0});
 
     f.close();
+    return true;
 }

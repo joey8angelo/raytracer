@@ -2,7 +2,8 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -std=c++17 -I. -lncurses -lpng
+CXXFLAGS = -std=c++17 -I.
+LIBS = -lncurses -lpng
 RELEASE_FLAGS = -O3
 DEBUG_FLAGS = -g -O0
 
@@ -27,23 +28,23 @@ all: $(TARGET)
 
 # Release build
 $(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(RELEASE_FLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) $(RELEASE_FLAGS) -o $@ $^ $(LIBS)
 
 # Debug build
 debug: $(DEBUG_TARGET)
 
 $(DEBUG_TARGET): $(DEBUG_OBJ)
-	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) -o $@ $^ $(LIBS)
 
 # Compile source files into object files (release)
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(RELEASE_FLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(RELEASE_FLAGS) -c $< -o $@ $(LIBS)
 
 # Compile source files into debug object files (debug)
 $(OBJ_DIR)/%.debug.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) -c $< -o $@ $(LIBS)
 
 # Clean up build files
 clean:

@@ -3,8 +3,6 @@ color white 1 1 1
 color red 1 0 0
 phong_shader red_shader red red white 50
 phong_shader white_shader white white white 50
-mesh 0 0 0 90 90 suzanne.obj white_shader
+mesh 0 0 0 90 90 0 objs/suzanne.obj white_shader
 point_light 5 4 0 white 400
-point_light 5 -3 3 red 400
 ambient_light white 0.2
-

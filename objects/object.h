@@ -31,6 +31,5 @@ class Object {
 	
 	virtual Hit intersection(const Ray& ray) const = 0;
 	virtual vec3 normal(const vec3& point, size_t face_idx) const = 0;
-	virtual void move_dir(const vec3& vec) = 0;
-	virtual void move_to(const vec3& vec) = 0;
+	virtual vec3 center() const = 0;
 };

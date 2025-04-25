@@ -1,14 +1,16 @@
 #include "objects/mesh.h"
 
-inline void make_rotation_matrix(vec<double, 16>& mat, const vec3& p, double rX, double rY) {
-    double cX = cos(rX);
-    double sX = sin(rX);
-    double cY = cos(rY);
-    double sY = sin(rY);
-    mat[0]=cY;     mat[1]=0;  mat[2]=sY;     mat[3]=p[0];
-    mat[4]=sX*sY;  mat[5]=cX; mat[6]=-sX*cY; mat[7]=p[1];
-    mat[8]=-cX*sY; mat[9]=sX; mat[10]=cX*cY; mat[11]=p[2];
-    mat[12]=0;     mat[13]=0; mat[14]=0;     mat[15]=1;
+inline void make_rotation_matrix(vec<double, 16>& mat, const vec3& p, double rX, double rY, double rZ) {
+    double c1 = cos(rX);
+    double s1 = sin(rX);
+    double c2 = cos(rY);
+    double s2 = sin(rY);
+    double c3 = cos(rZ);
+    double s3 = sin(rZ);
+    mat[0]=c1*c2; mat[1]=s1*s2*c3-c1*s3; mat[2]=c1*s2*c3+s1*s3; mat[3]=p[0];
+    mat[4]=c2*s3; mat[5]=s1*s2*s3+c1*c3; mat[6]=c1*s1*s3-s1*c3; mat[7]=p[1];
+    mat[8]=-s2;   mat[9]=s1*c2;          mat[10]=c1*c2;         mat[11]=p[2];
+    mat[12]=0;    mat[13]=0;             mat[14]=0;             mat[15]=1;
 }
 
 inline void invert_matrix(const vec<double, 16>& m, vec<double, 16>& inv) {
@@ -172,12 +174,18 @@ inline Ray transform_ray(const Ray& ray, const vec<double, 16>& mat) {
     return {origin, dir};
 }
 
-Mesh::Mesh(const char* filename, const vec3& pos, double rX, double rY) {
+Mesh::Mesh(const char* filename, const vec3& pos, double rX, double rY, double rZ) {
     parse_obj(filename);
-    make_rotation_matrix(mat, pos, rX, rY);
+    make_rotation_matrix(mat, pos, rX, rY, rZ);
     invert_matrix(mat, inv_mat);
-    std::cout << "[Mesh::Mesh] mat: " << mat << std::endl;
-    std::cout << "[Mesh::Mesh] inv_mat: " << inv_mat << std::endl;
+    if (debug) {
+        std::cout << "[Mesh::Mesh] mat: " << mat << std::endl;
+        std::cout << "[Mesh::Mesh] inv_mat: " << inv_mat << std::endl;
+    }
+}
+
+vec3 Mesh::center() const {
+    return {mat[3], mat[7], mat[11]};
 }
 
 
@@ -323,7 +331,7 @@ void Mesh::parse_obj(const char* filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "[Mesh::parse_obj] Could not open file " << filename << std::endl;
-        exit(1);
+        return;
     }
 
     std::cout << "parsing " << filename << std::endl;
@@ -375,20 +383,4 @@ vec<std::string, 3> Mesh::split(const std::string& s, char delim) {
             break;
     }
     return v;
-}
-
-void Mesh::move_dir(const vec3& vec) {
-    //mat[3] += vec[0];
-    //mat[7] += vec[1];
-    //mat[11] += vec[2];
-    //invert_matrix(mat, inv_mat);
-    make_rotation_matrix(mat, {mat[3], mat[7], mat[11]}, vec[0], vec[1]);
-    invert_matrix(mat, inv_mat);
-}
-
-void Mesh::move_to(const vec3& vec) {
-    mat[3] = vec[0];
-    mat[7] = vec[1];
-    mat[11] = vec[2];
-    invert_matrix(mat, inv_mat);
 }

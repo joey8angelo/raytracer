@@ -5,14 +5,13 @@
 /* Sphere, defined by a point in space and a radius
  * */
 class Sphere : public Object {
-	vec3 center;
+	vec3 pos;
 	double radius;
 	public:
-	Sphere(const vec3& center, double radius)
-		: center(center), radius(radius) {}
+	Sphere(const vec3& pos, double radius)
+		: pos(pos), radius(radius) {}
 	
 	virtual Hit intersection(const Ray& ray) const override;
 	virtual vec3 normal(const vec3& point, size_t face_idx) const override;
-	virtual void move_dir(const vec3& vec)  override;
-	virtual void move_to(const vec3& vec)  override;
+	virtual vec3 center() const override;
 };

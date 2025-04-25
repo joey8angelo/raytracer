@@ -6,45 +6,49 @@
 
 extern bool debug;
 
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection.html
 class Bounding_Box {
     public:
-    vec3 min;
-    vec3 max;
+    vec3 bounds[2];
 
     Bounding_Box() {
-        min.fill(std::numeric_limits<double>::max());
-        max.fill(std::numeric_limits<double>::min());
+        bounds[0].fill(std::numeric_limits<double>::max());
+        bounds[1].fill(std::numeric_limits<double>::min());
     }
 
     bool intersection(const Ray& ray) const {
-        if (debug) {
-            std::cout << "[Bounding_Box::intersection] " << ray.dir << " " 
-                      << ray.inv_dir << std::endl;
-        }
-        vec3 t_min = (min - ray.origin) * ray.inv_dir;
-        vec3 t_max = (max - ray.origin) * ray.inv_dir;
-        if (debug) {
-            std::cout << "[Bounding_Box::intersection]" << t_min << " " 
-                      << t_max << std::endl;
-        }
-        vec3 t1 = componentwise_min(t_min, t_max);
-        vec3 t2 = componentwise_max(t_min, t_max);
-        double far_d = std::min(std::min(t2[0], t2[1]), t2[2]);
-        double near_d = std::max(std::max(t1[0], t1[1]), t1[2]);
-        if (debug){
-            std::cout << "[Bounding_Box::intersection]" << far_d << ", " 
-                      << near_d << std::endl;
-        }
-        bool eq = abs(far_d - near_d) < small_t;
-        if (debug) {
-            std::cout << "[Bounding_Box::intersection] " << eq 
-                      << std::endl;
-        }
-        return (far_d > near_d && far_d > 0 || eq);
+        double tmin, tmax, tymin, tymax, tzmin, tzmax;
+
+        tmin = (bounds[ray.sign[0]][0] - ray.origin[0]) * ray.inv_dir[0];
+        tmax = (bounds[1 - ray.sign[0]][0] - ray.origin[0]) * ray.inv_dir[0];
+        tymin = (bounds[ray.sign[1]][1] - ray.origin[1]) * ray.inv_dir[1];
+        tymax = (bounds[1 - ray.sign[1]][1] - ray.origin[1]) * ray.inv_dir[1];
+        
+        if ((tmin > tymax) || (tymin > tmax)) return false;
+        if (tymin > tmin) tmin = tymin;
+        if (tymax < tmax) tmax = tymax;
+        
+        tzmin = (bounds[ray.sign[2]][2] - ray.origin[2]) * ray.inv_dir[2];
+        tzmax = (bounds[1 - ray.sign[2]][2] - ray.origin[2]) * ray.inv_dir[2];
+        
+        if ((tmin > tzmax) || (tzmin > tmax)) return false;
+        if (tzmin > tmin) tmin = tzmin;
+        if (tzmax < tmax) tmax = tzmax;
+
+        // if we want hit dist:
+        // dist = tmin
+        // if (tmin < 0) {
+        //     dist = tmax;
+        //     if (tmax < 0) return false;
+        // }
+
+        if (tmin < 0 && tmax < 0) return false;
+        
+        return true;
     }
 
     void include(const vec3& point) {
-        min = componentwise_min(min, point);
-        max = componentwise_max(max, point);
+        bounds[0] = componentwise_min(bounds[0], point);
+        bounds[1] = componentwise_max(bounds[1], point);
     }
 };

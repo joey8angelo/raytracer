@@ -2,7 +2,7 @@
 #include "ray.h"
 
 Hit Sphere::intersection(const Ray& ray) const {
-	vec3 oc = ray.origin - center;
+	vec3 oc = ray.origin - pos;
 	auto a = dot(ray.dir, ray.dir);
 	auto b = 2 * dot(ray.dir, oc);
 	auto c = dot(oc, oc) - radius*radius;
@@ -19,14 +19,10 @@ Hit Sphere::intersection(const Ray& ray) const {
 }
 
 vec3 Sphere::normal(const vec3& point, size_t face) const {
-	return (point - center).normalized();
+	return (point - pos).normalized();
 }
 
-void Sphere::move_dir(const vec3& vec) {
-	center += vec;
-}
-
-void Sphere::move_to(const vec3& vec) {
-	center = vec;
+vec3 Sphere::center() const {
+	return pos;
 }
 

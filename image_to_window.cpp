@@ -53,7 +53,7 @@ void get_color_and_char(unsigned int in_color, int& out_color, char& ch) {
 void image_to_window(unsigned int* data, WINDOW* win, int width, int height) {
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
-            if (i >= height-3 && j < 20)
+            if (i >= height-6 && j < 20) // block out the other windows hardcoded for now
                 continue;
 			int color;
 			char ch;

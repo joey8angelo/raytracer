@@ -13,6 +13,5 @@ class Plane : public Object {
 
     virtual Hit intersection(const Ray& ray) const override;
     virtual vec3 normal(const vec3& point, size_t face_idx) const override;
-    virtual void move_dir(const vec3& vec) override;
-    virtual void move_to(const vec3& vec) override;
+    virtual vec3 center() const override;
 };

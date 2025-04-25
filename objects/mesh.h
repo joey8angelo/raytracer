@@ -22,10 +22,9 @@ class Mesh : public Object {
     void parse_obj(const char* filename);
     vec<std::string, 3> split(const std::string& s, char delim);
     public:
-    Mesh(const char* filename, const vec3& pos, double rX, double rY);
+    Mesh(const char* filename, const vec3& pos, double rX, double rY, double rZ);
     
     virtual Hit intersection(const Ray& ray) const override;
     virtual vec3 normal(const vec3& point, size_t face_idx) const override;
-    virtual void move_dir(const vec3& vec)  override;
-    virtual void move_to(const vec3& vec)  override;
+    virtual vec3 center() const override;
 };
