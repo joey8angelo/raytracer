@@ -1,35 +1,52 @@
 #include <iostream>
 #include <ncurses.h>
+#include <chrono>
 #include "world.h"
 #include "ray.h"
 
-void image_to_window(unsigned int*, WINDOW* win, int, int);
-void dump_png(unsigned int*, int, int, const char*);
+void image_to_window(unsigned int* data, bool* block, WINDOW* win, int width, int height);
+void dump_png(unsigned int* data, int width, int height, const char* filename);
 int keyboard(World& world);
 void move_camera(World& world, int key);
 void rotate_camera(World& world, vec3 point, int key);
 void rot(vec3& p, const vec3& c, const vec3& u, double theta);
-WINDOW* create_window(int width, int height, int x, int y);
+WINDOW* create_window(int wwidth, int wheight, int x, int y, int width, int height);
 
 class Ray;
 
+bool* block;
+
+auto prev_time = std::chrono::system_clock::now();
 
 // render loop for the world
 void render(World& world, int width, int height, double pixel_ar, const char* output, bool dump) {
-    WINDOW* cam_win = create_window(20, 3, 0, 0);
-	WINDOW* cam_look_win = create_window(20, 3, 0, 3);
+    block = new bool[width*height];
+	for (int i = 0; i < width*height; i++) {
+		block[i] = false;
+	}
+	
+	WINDOW* cam_win = create_window(20, 3, 0, 0, width, height);
+	mvwprintw(cam_win,0,1,"Camera Position ");
+	WINDOW* cam_look_win = create_window(20, 3, 0, 3, width, height);
+	mvwprintw(cam_look_win,0,1,"Camera Look Dir ");
+	WINDOW* fps_win = create_window(6, 3, 0, 6, width, height);
+	mvwprintw(fps_win,0,1,"FPS ");
+
+	prev_time = std::chrono::system_clock::now();
     
-    int t = 0;
+    size_t frame = 0;
+	size_t pframe = 0;
+
     while (true) {
 		// handle keyboard inputs
         keyboard(world);
 
         // if we want to dump a sequence of images to every 10th frame
-        if (dump && t%10==0) {
+        if (dump && frame%10==0) {
             int c = 1;
             world.camera.set_resolution(ivec2(width*c, height*c*(1/pixel_ar)));
             world.render();
-            std::string nm = std::to_string(t/10);
+            std::string nm = std::to_string(frame/10);
             std::string zs = std::string(4-nm.size(), '0');
             std::string fn = std::string(output) + zs + nm + ".png";
             dump_png(world.camera.image, width*c, height*c*(1/pixel_ar), 
@@ -40,20 +57,29 @@ void render(World& world, int width, int height, double pixel_ar, const char* ou
         // render the world
 		world.render();
         // render the camera image to stdscr
-		image_to_window(world.camera.image, stdscr, width, height);
+		image_to_window(world.camera.image, block, stdscr, width, height);
 
-        // render info to camera window
+        // render info to camera windows
         mvwprintw(cam_win,1,1,"%.2f %.2f %.2f", world.camera.position[0], 
                 world.camera.position[1], world.camera.position[2]);
 		mvwprintw(cam_look_win,1,1,"%.2f %.2f %.2f", world.camera.look[0],
 				world.camera.look[1], world.camera.look[2]);
+
+		// render fps to fps window
+		auto cur_time = std::chrono::system_clock::now();
+		if (cur_time - prev_time > std::chrono::seconds(1)) {
+			mvwprintw(fps_win,1,1,"%d", frame-pframe);
+			pframe = frame;
+			prev_time = cur_time;
+		}
 		
         // refresh windows
         refresh();
         wrefresh(cam_win);
 		wrefresh(cam_look_win);
+		wrefresh(fps_win);
 
-	    t++;
+	    frame++;
     }
 }
 
@@ -141,7 +167,7 @@ void move_camera(World& world, int key) {
 }
 
 
-// rotate camera around a point
+// rotate camera around a pointZ
 void rotate_camera(World& world, vec3 point, int key) {
 	const double speed = 0.05;
 	const vec3 h = world.camera.horizontal;
@@ -172,8 +198,15 @@ void rot(vec3& p, const vec3& c, const vec3& u, double theta) {
 	p = c + r*cos_theta + cross(u,r)*sin_theta + u*(dot(u, r)*(1-cos_theta));
 }
 
-WINDOW* create_window(int width, int height, int x, int y) {
-    WINDOW* win = newwin(height, width, y, x);
+WINDOW* create_window(int wwidth, int wheight, int x, int y, int width, int height) {
+    WINDOW* win = newwin(wheight, wwidth, y, x);
     box(win, 0, 0);
+
+	for (int i = 0; i < wwidth; i++) {
+		for (int j = 0; j < wheight; j++) {
+			block[(height-j-y)*width +i-width+x] = true;
+		}
+	}
+
     return win;
 }

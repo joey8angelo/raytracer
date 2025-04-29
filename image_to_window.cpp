@@ -50,11 +50,13 @@ void get_color_and_char(unsigned int in_color, int& out_color, char& ch) {
 	ch = best_char(rgb);
 }
 
-void image_to_window(unsigned int* data, WINDOW* win, int width, int height) {
+void image_to_window(unsigned int* data, bool* block, WINDOW* win, int width, int height) {
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
-            if (i >= height-6 && j < 20) // block out the other windows hardcoded for now
+            if(block[i*width + j])
                 continue;
+            // if (i >= height-6 && j < 20) // block out the other windows hardcoded for now
+            //     continue;
 			int color;
 			char ch;
 			get_color_and_char(data[i*width + j], color, ch);
