@@ -18,3 +18,8 @@ vec3 Plane::normal(const vec3& point, size_t face_idx) const {
 vec3 Plane::center() const {
     return p;
 }
+
+Bounding_Box Plane::get_bounding_box() const {
+    Bounding_Box bb;
+    return bb;
+}

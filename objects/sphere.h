@@ -14,4 +14,5 @@ class Sphere : public Object {
 	virtual Hit intersection(const Ray& ray) const override;
 	virtual vec3 normal(const vec3& point, size_t face_idx) const override;
 	virtual vec3 center() const override;
+	virtual Bounding_Box get_bounding_box() const override;
 };

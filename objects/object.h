@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vec.h"
+#include "bounding_box.h"
 
 static const double small_t = 1e-4;
 extern bool debug;
@@ -32,4 +33,5 @@ class Object {
 	virtual Hit intersection(const Ray& ray) const = 0;
 	virtual vec3 normal(const vec3& point, size_t face_idx) const = 0;
 	virtual vec3 center() const = 0;
+	virtual Bounding_Box get_bounding_box() const = 0;
 };
