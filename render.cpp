@@ -67,7 +67,7 @@ void render(World& world, int width, int height, double pixel_ar, const char* ou
 
 		// render fps to fps window
 		auto cur_time = std::chrono::system_clock::now();
-		if (cur_time - prev_time > std::chrono::seconds(1)) {
+		if (cur_time - prev_time >= std::chrono::seconds(1)) {
 			mvwprintw(fps_win,1,1,"%d", frame-pframe);
 			pframe = frame;
 			prev_time = cur_time;

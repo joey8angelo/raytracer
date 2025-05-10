@@ -182,103 +182,11 @@ Mesh::Mesh(const char* filename, const vec3& pos, double rX, double rY, double r
         std::cout << "[Mesh::Mesh] mat: " << mat << std::endl;
         std::cout << "[Mesh::Mesh] inv_mat: " << inv_mat << std::endl;
     }
-    bvh.build(tris, nt);
+    bvh.build(&tris);
 }
 
 vec3 Mesh::center() const {
     return {mat[3], mat[7], mat[11]};
-}
-
-Hit Triangle::intersection(const Ray& ray) const {
-    vec3 edge1 = *v2 - *v1;
-    vec3 edge2 = *v3 - *v1;
-    vec3 h = cross(ray.dir, edge2);
-    double a = dot(edge1, h);
-    double f = 1 / a;
-    vec3 s = ray.origin - *v1;
-    double u = f * dot(s, h);
-    if (u < 0 || u > 1) {
-        if (debug) {
-            std::cout << "[Mesh::triangle_intersection] u: " << u
-                      << std::endl;
-        }
-        return {NULL, 0, 0};
-    }
-    vec3 q = cross(s, edge1);
-    double v = f * dot(ray.dir, q);
-    if (v < 0 || u + v > 1) {
-        if (debug) {
-            std::cout << "[Mesh::triangle_intersection] v: " << v
-                      << " u: " << u << std::endl;
-        }
-        return {NULL, 0, 0};
-    }
-    double t = f * dot(edge2, q);
-    if (t >= small_t) {
-        return {this, t, idx};
-    } else {
-        if (debug) {
-            std::cout << "[Mesh::triangle_intersection] t: " << t
-                      << std::endl;
-        }
-        return {NULL, 0, 0};
-    }
-}
-
-vec3 Triangle::normal(const vec3& point, size_t face_idx) const {
-    if (debug) {
-        std::cout << "[Triangle::normal] point: " << point << " face: " << idx 
-                  << std::endl;
-    }
-
-    // obj file gave no normals for vertices
-    if ((*n1)[0]==0 && (*n1)[1]==0 && (*n1)[2]==0) {
-        // use cross product of edges to get normal
-        return cross(*v2 - *v1, *v3 - *v1).normalized();
-    } else {
-        vec3 p1 = *v2 - *v1;
-        vec3 p2 = *v3 - *v1;
-        vec3 p3 = point - *v1;
-
-        double d00 = dot(p1, p1);
-        double d01 = dot(p1, p2);
-        double d11 = dot(p2, p2);
-        double d20 = dot(p3, p1);
-        double d21 = dot(p3, p2);
-        double denom = d00 * d11 - d01 * d01;
-
-        double y = (d11 * d20 - d01 * d21) / denom;
-        double z = (d00 * d21 - d01 * d20) / denom;
-        double x = 1.0f - y - z;
-
-        if (debug) {
-            std::cout << "[Mesh::normal] barycentric coords: " << x << " " 
-                      << y << " " << z << std::endl;
-            std::cout << "[Mesh::normal] normals: " << n1 << " " << n2 << " " 
-                      << n3 << std::endl;
-        }
-
-        // use barycentric weights to interpolate given normals
-        vec3 res = *n1 * x + *n2 * y + *n3 * z;
-        
-        if (debug) {
-            std::cout << "[Mesh::normal] interpolated normal: " << res << std::endl;
-        }
-        
-        return res.normalized();
-    } 
-}
-
-vec3 Triangle::center() const {
-    return (*v1 + *v2 + *v3) / 3;
-}
-
-Bounding_Box Triangle::get_bounding_box() const {
-    Bounding_Box bb;
-    bb.include(*v1);
-    bb.include(*v2);
-    bb.include(*v3);
-    return bb;
 }
 
 Hit Mesh::intersection(const Ray& ray) const {
@@ -298,50 +206,11 @@ Hit Mesh::intersection(const Ray& ray) const {
         return {this, hit.dist, hit.face};
     }
     return {NULL, 0, 0};
-
-    // -----------------------------------------------------------
-
-    // if (debug) {
-    //     std::cout << "[Mesh::intersection] obj space ray: " << r.origin << " " 
-    //               << r.dir << std::endl;
-    // }
-    
-    // if (bb.intersection(r)) {
-    //     if (debug) {
-    //         std::cout << "[Mesh::intersection] ray intersects bounding box" 
-    //                   << std::endl;
-    //     }
-    //     Hit best_hit = {NULL, INT_MAX, 0};
-    //     for (size_t i = 0; i < nt; i++) {
-    //         Hit hit = tris[i].intersection(r);
-
-    //         if (debug && hit.object) {
-    //             std::cout << "[Mesh::intersection] hit: " << hit.dist << " " 
-    //                       << i << std::endl;
-    //         }
-
-    //         if (hit.object && hit.dist < best_hit.dist) {
-    //             best_hit = hit;
-    //         }
-    //     }
-    //     if (best_hit.object) {
-    //         if (debug) {
-    //             std::cout << "[Mesh::intersection] best hit: " << best_hit.dist 
-    //                       << " " << best_hit.face << std::endl;
-    //         }
-    //         return {this, best_hit.dist, best_hit.face};
-    //     }
-    // }
-    // if (debug) {
-    //     std::cout << "[Mesh::intersection] ray does not intersect bounding box" 
-    //               << std::endl;
-    // }
-    // return {NULL, 0, 0};
 }
 
 vec3 Mesh::normal(const vec3& point, size_t face_idx) const {
     vec3 p = transform_point(point, inv_mat);
-    return transform_vec(tris[face_idx].normal(p, 0), mat).normalized();
+    return transform_vec(tris[face_idx]->normal(p, 0), mat).normalized();
 } 
 
 void Mesh::parse_obj(const char* filename) {
@@ -353,80 +222,44 @@ void Mesh::parse_obj(const char* filename) {
         return;
     }
 
-    // count number of vertices, normals and faces
-    size_t vs, ns, ts;
-    vs = ns = ts = 0;
     std::string line;
     while (std::getline(file, line)) {
+        vec3 v0;
+        ivec3 iv0;
+        ivec3 iv1;
+
         std::stringstream ss(line);
         std::string type;
         ss >> type;
         if (type == "v") {
-            vs++;
+            ss >> v0;
+            vertices.push_back(v0);
         } else if (type == "vn") {
-            ns++;
+            ss >> v0;
+            normals.push_back(v0);
         } else if (type == "vt") {
-            if (!warn) {
+            if(!warn) {
                 warn = true;
-                std::cerr << "[Mesh::parse_obj] Texture coordinates not supported" << std::endl;
+                std::cerr << "[Mesh::parse_obj] Warning: Texture coordinates not supported" << std::endl;
             }
         } else if (type == "f") {
-            ts++;
-        }
-    }
-    file.close();
-    vertices = new vec3[vs];
-    nv = vs;
-    normals = new vec3[ns];
-    nn = ns;
-    tris = new Triangle[ts];
-    nt = ts;
-
-    file.open(filename);
-    if (!file.is_open()) {
-        std::cerr << "[Mesh::parse_obj] Could not open file " << filename << std::endl;
-        return;
-    }
-
-    // get the actual data
-    vs = ns = ts = 0;
-    while (std::getline(file, line)) {
-        std::stringstream ss(line);
-        std::string type;
-        ss >> type;
-        if (type == "v") {
-            vec3 v;
-            ss >> v;
-            vertices[vs++] = v;
-            bb.include(v);
-        } else if (type == "vn") {
-            vec3 n;
-            ss >> n;
-            normals[ns++] = n;
-        } else if (type == "f") {
-            ivec3 v;
-            ivec3 n;
             for (auto i = 0; i < 3; i++) {
                 std::string s;
                 ss >> s;
                 vec<std::string, 3> t = split(s, '/');
                 
                 // vertex index
-                v[i] = std::stoi(t[0]) - 1;
+                iv0[i] = std::stoi(t[0]) - 1;
 
                 // normal index
                 if (t[2]!="")
-                    n[i] = std::stoi(t[2]) - 1;
+                    iv1[i] = std::stoi(t[2]) - 1;
             }
 
-            tris[ts] = Triangle(vertices+v[0], vertices+v[1], vertices+v[2],
-                normals+n[0], normals+n[1], normals+n[2], ts);
-            ts++;
+            tris.push_back(new Triangle(&vertices, &normals, iv0[0], iv0[1], iv0[2], 
+                iv1[0], iv1[1], iv1[2], tris.size()));
         }
     }
-
-    std::cout << "[Mesh::parse_obj] bounding_box: " << bb.bounds[0] << " " 
-              << bb.bounds[1] << std::endl;
 
     file.close();
 }
