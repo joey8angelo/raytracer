@@ -17,6 +17,7 @@ World::~World() {
 	// delete shaders
 	for(size_t i = 0; i < shaders.size(); i++)
 		delete shaders[i];
+	delete background_shader;
 }
 
 Hit World::closest_intersection(const Ray& ray) {
@@ -24,12 +25,7 @@ Hit World::closest_intersection(const Ray& ray) {
 		std::cout << "[World::closest_intersection] ray: " << ray.origin << " " 
 		          << ray.dir << std::endl;
 	}
-	// Hit curr_hit = {NULL, std::numeric_limits<double>::max(), 0};
 	Hit curr_hit = bvh.intersection(ray);
-	// if (debug) {
-	// 	std::cout << "[World::closest_intersection] bvh hit: " << curr_hit.dist << " " 
-	// 	          << curr_hit.face << std::endl;
-	// }
 	for (size_t i = 0; i < infinite_objects.size(); i++) {
 		Hit hit = infinite_objects[i]->intersection(ray);
 		if (hit.object && (!curr_hit.object || hit.dist < curr_hit.dist)) {

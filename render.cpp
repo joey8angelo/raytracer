@@ -39,7 +39,9 @@ void render(World& world, int width, int height, double pixel_ar, const char* ou
 
     while (true) {
 		// handle keyboard inputs
-        keyboard(world);
+        int k = keyboard(world);
+		if (k == -1)
+			break;
 
         // if we want to dump a sequence of images to every 10th frame
         if (dump && dcount%10==0) {
@@ -84,6 +86,11 @@ void render(World& world, int width, int height, double pixel_ar, const char* ou
 	    frame++;
 		dcount++;
     }
+
+	delete[] block;
+	delwin(cam_win);
+	delwin(cam_look_win);
+	delwin(fps_win);
 }
 
 int keyboard(World& world) {
@@ -120,9 +127,7 @@ int keyboard(World& world) {
 			}
 			break;
 		case 'q':
-			endwin();
-			exit(1);
-			break;
+			return -1;
 		default:
 			return 0;
 	}
@@ -170,7 +175,7 @@ void move_camera(World& world, int key) {
 }
 
 
-// rotate camera around a pointZ
+// rotate camera around a point
 void rotate_camera(World& world, vec3 point, int key) {
 	const double speed = 0.05;
 	const vec3 h = world.camera.horizontal;
@@ -206,10 +211,14 @@ WINDOW* create_window(int wwidth, int wheight, int x, int y, int width, int heig
     box(win, 0, 0);
 
 	for (int i = 0; i < wwidth; i++) {
-		for (int j = 0; j < wheight; j++) {
-			block[(height-j-y)*width +i-width+x] = true;
-		}
+    	for (int j = 0; j < wheight; j++) {
+        	int idx = (height-j-y)*width +i-width+x;
+        	if (idx >= 0 && idx < width * height) {
+            	block[idx] = true;
+        	}
+    	}
 	}
+
 
     return win;
 }
