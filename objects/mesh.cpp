@@ -1,16 +1,15 @@
 #include "objects/mesh.h"
 
 inline void make_rotation_matrix(vec<double, 16>& mat, const vec3& p, double rX, double rY, double rZ) {
-    double c1 = cos(rX);
-    double s1 = sin(rX);
-    double c2 = cos(rY);
-    double s2 = sin(rY);
-    double c3 = cos(rZ);
-    double s3 = sin(rZ);
-    mat[0]=c1*c2; mat[1]=s1*s2*c3-c1*s3; mat[2]=c1*s2*c3+s1*s3; mat[3]=p[0];
-    mat[4]=c2*s3; mat[5]=s1*s2*s3+c1*c3; mat[6]=c1*s1*s3-s1*c3; mat[7]=p[1];
-    mat[8]=-s2;   mat[9]=s1*c2;          mat[10]=c1*c2;         mat[11]=p[2];
-    mat[12]=0;    mat[13]=0;             mat[14]=0;             mat[15]=1;
+    float cx = cos(rX), sx = sin(rX);
+    float cy = cos(rY), sy = sin(rY);
+    float cz = cos(rZ), sz = sin(rZ);
+    
+    // Rotation part (3x3 upper-left)
+    mat[0] = cy*cz;  mat[1] = sx*sy*cz + cx*sz;  mat[2] = -cx*sy*cz + sx*sz; mat[3] = 0;
+    mat[4] = -cy*sz; mat[5] = -sx*sy*sz + cx*cz; mat[6] = cx*sy*sz + sx*cz;  mat[7] = 0;
+    mat[8] = sy;     mat[9] = -sx*cy;            mat[10] = cx*cy;            mat[11] = 0;
+    mat[12] = p[0];  mat[13] = p[1];             mat[14] = p[2];             mat[15] = 1;
 }
 
 inline void invert_matrix(const vec<double, 16>& m, vec<double, 16>& inv) {
@@ -165,7 +164,7 @@ inline vec3 transform_vec(const vec3& v, const vec<double, 16>& mat) {
 }
 // transform a given point by a transformation matrix
 inline vec3 transform_point(const vec3& p, const vec<double, 16>& mat) {
-    return transform_vec(p, mat) + vec3{mat[3],mat[7],mat[11]};
+    return transform_vec(p, mat) + vec3{mat[12],mat[13],mat[14]};
 }
 // transform a given ray by a transformation matrix
 inline Ray transform_ray(const Ray& ray, const vec<double, 16>& mat) {
@@ -265,6 +264,11 @@ void Mesh::parse_obj(const char* filename) {
 }
 
 Bounding_Box Mesh::get_bounding_box() const {
+    Bounding_Box bb;
+    vec3 min = transform_point(bb.bounds[0], mat);
+    vec3 max = transform_point(bb.bounds[1], mat);
+    bb.include(min);
+    bb.include(max);
     return bb;
 }
 

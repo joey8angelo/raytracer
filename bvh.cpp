@@ -15,6 +15,9 @@ BVH::BVH(const std::vector<Object*>* objects) : objects(objects), n(objects->siz
 void BVH::build(const std::vector<Object*>* objects) {
     this->objects = objects;
     this->n = objects->size();
+    if (n == 0) { // no objects
+        return;
+    }
     used_nodes = 1;
     idxs.resize(n);
     for (size_t i = 0; i < n; i++) {
@@ -37,12 +40,8 @@ void BVH::update_node_bb(size_t node_idx) {
 }
 
 void BVH::divide(size_t node_idx) {
-    std::cout << "[BVH::divide] node: " << node_idx << std::endl;
     BVHNode& node = nodes[node_idx];
-    std::cout << "[BVH::divide] node count: " << node.count << " left_start: " << node.left_start << std::endl;
     if (node.count <= 2) return;
-
-    std::cout << "[BVH::divide] node count: " << node.count << std::endl;
 
     // find longest axis
     vec3 diag = node.bb.bounds[1] - node.bb.bounds[0];
@@ -50,13 +49,7 @@ void BVH::divide(size_t node_idx) {
     if (diag[1] > diag[axis]) axis = 1;
     if (diag[2] > diag[axis]) axis = 2;
 
-    std::cout << "[BVH::divide] axis: " << axis << std::endl;
-    std::cout << "[BVH::divide] bounds: " << node.bb.bounds[0][axis] << " " 
-              << node.bb.bounds[1][axis] << std::endl;
-
     double part = (node.bb.bounds[0][axis] + node.bb.bounds[1][axis]) * 0.5;
-
-    std::cout << "[BVH::divide] part: " << part << std::endl;
 
     // partition
     size_t i = node.left_start;
@@ -66,7 +59,6 @@ void BVH::divide(size_t node_idx) {
         else std::swap(idxs[i], idxs[j--]);
     }
     size_t left_count = i - node.left_start;
-    std::cout << "[BVH::divide] left count: " << left_count << std::endl;
     if (left_count == 0 || left_count == node.count) return;
     size_t left_idx = used_nodes++;
     size_t right_idx = used_nodes++;
@@ -86,6 +78,12 @@ Hit BVH::intersection(const Ray& ray, size_t node_idx) const {
     if (debug) {
         std::cout << "[BVH::intersection] ray: " << ray.origin << " " 
                   << ray.dir << std::endl;
+    }
+    if (n == 0) {
+        if (debug) {
+            std::cout << "[BVH::intersection] no objects" << std::endl;
+        }
+        return {NULL, 0, 0};
     }
     const BVHNode& node = nodes[node_idx];
     if (!node.bb.intersection(ray)) {

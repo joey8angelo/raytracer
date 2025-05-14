@@ -55,25 +55,26 @@ bool parse_scene(World& world, int width, int height, double ar, const char* fn)
             if (!ssa(ss)) return false;
             Object* o = new Sphere(u, d0);
             if (!get(shaders, s0, o->shader)) return false;
-            world.objects.push_back(o);
+            world.finite_objects.push_back(o);
         } else if (entry=="plane") {
             ss>>u>>v>>s0;
             if (!ssa(ss)) return false;
             Object* o = new Plane(u,v);
             if (!get(shaders, s0, o->shader)) return false;
-            world.objects.push_back(o);
+            world.infinite_objects.push_back(o);
         } else if (entry=="mesh") {
             ss>>u>>d0>>d1>>d2>>s0>>s1;
             if (!ssa(ss)) return false;
             Object* o = new Mesh(s0.c_str(), u, (pi/180)*d0, (pi/180)*d1, (pi/180)*d2);
             if (!get(shaders, s1, o->shader)) return false;
-            world.objects.push_back(o);  
+            world.finite_objects.push_back(o);  
         } else if (entry=="flat_shader") {
             ss>>name>>s0;
             if (!ssa(ss)) return false;
             vec3 t;
             if (!get(colors, s0, t)) return false;
             shaders[name] = new Flat_Shader(world, t);
+            world.shaders.push_back(shaders[name]);
         } else if (entry=="phong_shader") {
             ss>>name>>s0>>s1>>s2>>d0;
             if (!ssa(ss)) return false;
@@ -82,10 +83,12 @@ bool parse_scene(World& world, int width, int height, double ar, const char* fn)
             if (!get(colors, s1, c1)) return false;
             if (!get(colors, s2, c2)) return false;
             shaders[name] = new Phong_Shader(world, c0, c1, c2, d0);
+            world.shaders.push_back(shaders[name]);
         } else if (entry=="normal_shader") {
             ss>>name;
             if (!ssa(ss)) return false;
             shaders[name] = new Normal_Shader(world);
+            world.shaders.push_back(shaders[name]);
         } else if (entry=="point_light") {
             ss>>u>>s0>>d0;
             if (!ssa(ss)) return false;
@@ -121,13 +124,17 @@ bool parse_scene(World& world, int width, int height, double ar, const char* fn)
         } else if (entry=="antialiasing") {
             ss>>world.samples;
             if (!ssa(ss)) return false;
-        }else {
+        } else if (entry=="#") {
+            continue;
+        } else {
             std::cerr << "Error: Unknown entry " << entry << "\n";
             return false;
         }
     }
     if (!world.background_shader)
         world.background_shader = new Flat_Shader(world, {0,0,0});
+
+    world.bvh.build(&world.finite_objects);
 
     f.close();
     return true;

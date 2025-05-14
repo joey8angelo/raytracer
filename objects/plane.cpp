@@ -20,6 +20,5 @@ vec3 Plane::center() const {
 }
 
 Bounding_Box Plane::get_bounding_box() const {
-    Bounding_Box bb;
-    return bb;
+    throw std::runtime_error("Plane does not have a bounding box");
 }

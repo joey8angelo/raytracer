@@ -16,11 +16,10 @@ class Mesh : public Object {
     std::vector<Object*> tris;
     BVH bvh;
 
-    // transformation matrices, in row major order
+    // transformation matrices
     vec<double, 16> mat;
     vec<double, 16> inv_mat;
     
-    Bounding_Box bb;
     void parse_obj(const char* filename);
     vec<std::string, 3> split(const std::string& s, char delim);
     public:

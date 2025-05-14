@@ -6,25 +6,43 @@
 #include "util.h"
 
 World::~World() {
-	// delete background shader
-    if (background_shader)
-        delete background_shader;
     // delete objects
-	for(size_t i = 0; i < objects.size(); i++)
-		delete objects[i];
+	for(size_t i = 0; i < finite_objects.size(); i++)
+		delete finite_objects[i];
+	for(size_t i = 0; i < infinite_objects.size(); i++)
+		delete infinite_objects[i];
 	// delete lights
 	for(size_t i = 0; i < lights.size(); i++)
 		delete lights[i];
+	// delete shaders
+	for(size_t i = 0; i < shaders.size(); i++)
+		delete shaders[i];
 }
 
 Hit World::closest_intersection(const Ray& ray) {
-	Hit closest_hit = {NULL, std::numeric_limits<double>::max()};
-	for (auto ob : objects) {
-		Hit hit = ob->intersection(ray);
-		if (hit.object && closest_hit.dist > hit.dist)
-			closest_hit = hit;
+	if (debug) {
+		std::cout << "[World::closest_intersection] ray: " << ray.origin << " " 
+		          << ray.dir << std::endl;
 	}
-	return closest_hit;
+	// Hit curr_hit = {NULL, std::numeric_limits<double>::max(), 0};
+	Hit curr_hit = bvh.intersection(ray);
+	// if (debug) {
+	// 	std::cout << "[World::closest_intersection] bvh hit: " << curr_hit.dist << " " 
+	// 	          << curr_hit.face << std::endl;
+	// }
+	for (size_t i = 0; i < infinite_objects.size(); i++) {
+		Hit hit = infinite_objects[i]->intersection(ray);
+		if (hit.object && (!curr_hit.object || hit.dist < curr_hit.dist)) {
+			curr_hit = hit;
+		}
+	}
+	for (size_t i = 0; i < finite_objects.size(); i++) {
+		Hit hit = finite_objects[i]->intersection(ray);
+		if (hit.object && (!curr_hit.object || hit.dist < curr_hit.dist)) {
+			curr_hit = hit;
+		}
+	}
+	return curr_hit;
 }
 
 void World::render() {

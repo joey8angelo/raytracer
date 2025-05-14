@@ -28,7 +28,7 @@ vec3 Sphere::center() const {
 
 Bounding_Box Sphere::get_bounding_box() const {
 	Bounding_Box bb;
-	bb.include(pos - vec3(radius));
-	bb.include(pos + vec3(radius));
+	bb.include(pos - vec3(radius, radius, radius));
+	bb.include(pos + vec3(radius, radius, radius));
 	return bb;
 }

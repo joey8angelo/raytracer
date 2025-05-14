@@ -35,14 +35,14 @@ void render(World& world, int width, int height, double pixel_ar, const char* ou
 	prev_time = std::chrono::system_clock::now();
     
     size_t frame = 0;
-	size_t pframe = 0;
+	size_t dcount = 0;
 
     while (true) {
 		// handle keyboard inputs
         keyboard(world);
 
         // if we want to dump a sequence of images to every 10th frame
-        if (dump && frame%10==0) {
+        if (dump && dcount%10==0) {
             int c = 1;
             world.camera.set_resolution(ivec2(width*c, height*c*(1/pixel_ar)));
             world.render();
@@ -52,6 +52,7 @@ void render(World& world, int width, int height, double pixel_ar, const char* ou
             dump_png(world.camera.image, width*c, height*c*(1/pixel_ar), 
                     fn.c_str());
             world.camera.set_resolution(ivec2(width, height));
+			dcount = 0;
         }
 
         // render the world
@@ -68,10 +69,11 @@ void render(World& world, int width, int height, double pixel_ar, const char* ou
 		// render fps to fps window
 		auto cur_time = std::chrono::system_clock::now();
 		if (cur_time - prev_time >= std::chrono::seconds(1)) {
-			mvwprintw(fps_win,1,1,"%d", frame-pframe);
-			pframe = frame;
+			mvwprintw(fps_win,1,1,"%-*d", 4, frame);
 			prev_time = cur_time;
+			frame = 0;
 		}
+
 		
         // refresh windows
         refresh();
@@ -80,6 +82,7 @@ void render(World& world, int width, int height, double pixel_ar, const char* ou
 		wrefresh(fps_win);
 
 	    frame++;
+		dcount++;
     }
 }
 

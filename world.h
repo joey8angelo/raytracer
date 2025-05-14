@@ -4,6 +4,7 @@
 #include "vec.h"
 #include "camera.h"
 #include "objects/object.h"
+#include "bvh.h"
 
 class Ray;
 class Light;
@@ -14,12 +15,15 @@ class World {
 	Camera camera;
 
 	Shader* background_shader;
-	std::vector<Object*> objects;
+	std::vector<Object*> finite_objects;
+	std::vector<Object*> infinite_objects;
 	std::vector<Light*> lights;
+	std::vector<Shader*> shaders;
 	vec3 ambient_color;
 	double ambient_intensity;
 	int recursion_depth_limit;
     int samples;
+	BVH bvh;
 
 	World() : background_shader(0), ambient_intensity(0), 
               recursion_depth_limit(3), samples(1) {}
