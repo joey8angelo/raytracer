@@ -50,7 +50,7 @@ void render(World& world, int width, int height, double pixel_ar, const char* ou
             world.render();
             std::string nm = std::to_string(frame/10);
             std::string zs = std::string(4-nm.size(), '0');
-            std::string fn = std::string(output) + zs + nm + ".png";
+            std::string fn = std::string(output) + "_" + zs + nm + ".png";
             dump_png(world.camera.image, width*c, height*c*(1/pixel_ar), 
                     fn.c_str());
             world.camera.set_resolution(ivec2(width, height));

@@ -14,7 +14,7 @@ bool parse_args(int argc, char** argv, int& width, int& height,
 	int& debugx, int& debugy, char*& scene, char*& output, bool& dump);
 
 void usage() {
-	std::cerr << "usage: raytracer [-f input_scene] [-d width height debug_x debug_y] [-o output_file]\n";
+	std::cerr << "usage: raytracer [-i input_scene] [-d width height debug_x debug_y] [-o output_file] [-O dump_file]\n";
 	endwin();
 }
 
