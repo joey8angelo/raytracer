@@ -22,3 +22,4 @@ Custom scene building
 -O dump_file: render every 10th frame to a file with dump_file_frame.png
 
 ![Donut](donut.gif)
+![Monkey](monkey.gif)
