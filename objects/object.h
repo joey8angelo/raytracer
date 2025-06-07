@@ -1,7 +1,7 @@
 #pragma once
 
-#include "vec.h"
 #include "bounding_box.h"
+#include "vec.h"
 
 static const double small_t = 1e-4;
 extern bool debug;
@@ -11,9 +11,9 @@ class Ray;
 class Shader;
 
 struct Hit {
-	const Object* object;
-	double dist;
-	size_t face;
+  const Object *object;
+  double dist;
+  size_t face;
 };
 
 /* Abstract object
@@ -25,13 +25,13 @@ struct Hit {
  * move_to moves the object to the given point in space
  */
 class Object {
-	public:
-	Shader* shader;
-	Object() : shader(0) {}
-	virtual ~Object() {}
-	
-	virtual Hit intersection(const Ray& ray) const = 0;
-	virtual vec3 normal(const vec3& point, size_t face_idx) const = 0;
-	virtual vec3 center() const = 0;
-	virtual Bounding_Box get_bounding_box() const = 0;
+public:
+  Shader *shader;
+  Object() : shader(0) {}
+  virtual ~Object() {}
+
+  virtual Hit intersection(const Ray &ray) const = 0;
+  virtual vec3 normal(const vec3 &point, size_t face_idx) const = 0;
+  virtual vec3 center() const = 0;
+  virtual Bounding_Box get_bounding_box() const = 0;
 };

@@ -12,3 +12,4 @@ sphere 0 1 0 .5 green_shader
 sphere 0 0 1 .5 blue_shader
 recursion_depth 1
 camera 5 0 0 0 0 0 0 0 1 70
+antialiasing 16

@@ -2,10 +2,13 @@
 
 #include <cstdint>
 
-inline double xorshift_0_1(const int& s1, const int& s2, const int& s3) {
-    uint8_t x = s1 ^ (s1 << 3);
-    x ^= (x^s2) >> 7;
-    x ^= (x^s3) << 5;
-
-    return double(x)/(UINT8_MAX+55);
+inline double xorshift_0_1(const int &s1, const int &s2, const int &s3) {
+  uint32_t x =
+      0xDEADBEEF ^ (s1 * 0x12345678) ^ (s2 * 0x87654321) ^ (s3 * 0xABCDEF01);
+  x ^= x >> 16;
+  x ^= x >> 8;
+  x ^= x >> 4;
+  x ^= x >> 2;
+  x ^= x >> 1;
+  return static_cast<double>(x & 1) / 2.0 + 0.5; // Scale to [0, 1)
 }
