@@ -23,5 +23,5 @@ Custom scene building
 
 -O dump_file frame_i scale: render every ith frame to a file with dump_file_frame.png at scaled resolution 
 
-![Donut](donut.gif)
-![Monkey](monkey.gif)
+![Donut](ndonut.gif)
+![Monkey](nmonkey.gif)
