@@ -3,6 +3,7 @@
 #include <iostream>
 #include <ncurses.h>
 #include <string>
+#include <vector>
 
 const char chars[] = " .,\"~!+:vcIow0XPR#*RB@";
 const int char_len = 22;
@@ -49,11 +50,11 @@ void get_color_and_char(unsigned int in_color, int &out_color, char &ch) {
   ch = best_char(rgb);
 }
 
-void image_to_window(unsigned int *data, bool *block, WINDOW *win, int width,
-                     int height) {
+void image_to_window(const unsigned int *data, const std::vector<bool> &blocked,
+                     WINDOW *win, int width, int height) {
   for (int i = 0; i < height; i++) {
     for (int j = 0; j < width; j++) {
-      if (block[i * width + j])
+      if (blocked[i * width + j])
         continue;
       int color;
       char ch;

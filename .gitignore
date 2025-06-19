@@ -15,8 +15,9 @@
 raytracer
 raytracer_debug
 
-# png
+# pictures and videos
 *.png
+*.mp4
 
 # Build directories
 build/

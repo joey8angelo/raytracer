@@ -2,20 +2,24 @@
 #include <cstring>
 #include <iostream>
 #include <ncurses.h>
+#include <string>
 
-void render(World &world, int width, int height, double pixel_ar,
-            const char *output, bool dump);
-void dump_png(unsigned int *, int, int, const char *);
+void render(World &world, const double &pixel_ar, const std::string &output,
+            const int &frame_out, const double &scale);
+void dump_png(unsigned int *data, int width, int height,
+              const std::string &filename);
 void ncurses_init();
 void set_colors();
 bool parse_scene(World &world, int width, int height, double ar,
-                 const char *fn);
+                 const std::string &fn);
 bool parse_args(int argc, char **argv, int &width, int &height, int &debugx,
-                int &debugy, char *&scene, char *&output, bool &dump);
+                int &debugy, std::string &scene, std::string &output,
+                int &frame_out, double &scale);
 
 void usage() {
-  std::cerr << "usage: raytracer [-i input_scene] [-d width height debug_x "
-               "debug_y] [-o output_file] [-O dump_file]\n";
+  std::cerr << "usage: raytracer [-i input_scene] [-s scene_number] [-d width "
+               "height debug_x "
+               "debug_y] [-o output_file] [-O dump_file frame_i]\n";
   endwin();
 }
 
@@ -25,17 +29,18 @@ const double PIXEL_AR = 1 / 2.35; // ad hoc aspect ratio of a terminal character
 int main(int argc, char **argv) {
   int width, height, debugx, debugy;
   debugx = debugy = -1;
-  char *scene = 0;
-  char *output = 0;
-  bool dump = false;
+  std::string scene = "";
+  std::string output = "";
+  int frame_out = 0;
+  double scale = 1.0;
 
   if (!parse_args(argc, argv, width, height, debugx, debugy, scene, output,
-                  dump)) {
+                  frame_out, scale)) {
     usage();
     return 1;
   }
 
-  if (scene == 0) {
+  if (scene == "") {
     usage();
     return 1;
   }
@@ -72,27 +77,31 @@ int main(int argc, char **argv) {
   }
 
   // if output was set render the first frame to a png
-  if (output && !dump) {
+  if (output != "" && frame_out == 0) {
     world.camera.set_resolution(
-        ivec2(width * 10, height * 10 * (1 / PIXEL_AR)));
+        ivec2(width * scale, height * scale * (1 / PIXEL_AR)));
     world.render();
-    dump_png(world.camera.image, width * 10, height * 10 * (1 / PIXEL_AR),
+    dump_png(world.camera.image, width * scale, height * scale * (1 / PIXEL_AR),
              output);
   }
 
   // keep rendering the world to the screen until user quits
   world.camera.set_resolution(ivec2(width, height));
-  render(world, width, height, PIXEL_AR, output, dump);
+  render(world, PIXEL_AR, output, frame_out, scale);
 
   endwin();
   return 0;
 }
 
 bool parse_args(int argc, char **argv, int &width, int &height, int &debugx,
-                int &debugy, char *&scene, char *&output, bool &dump) {
+                int &debugy, std::string &scene, std::string &output,
+                int &frame_out, double &scale) {
   for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-i") == 0 && i + 1 < argc) {
-      scene = argv[i + 1];
+      scene = std::string(argv[i + 1]);
+      i++;
+    } else if (strcmp(argv[i], "-s") == 0 && i + 1 < argc) {
+      scene = "scenes/ts_" + std::string(argv[i + 1]) + ".txt";
       i++;
     } else if (strcmp(argv[i], "-d") == 0 && i + 4 < argc) {
       width = std::stoi(argv[i + 1]);
@@ -100,15 +109,16 @@ bool parse_args(int argc, char **argv, int &width, int &height, int &debugx,
       debugx = std::stoi(argv[i + 3]);
       debugy = std::stoi(argv[i + 4]);
       i += 4;
-    } else if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
-      output = argv[i + 1];
-      i++;
-    } else if (strcmp(argv[i], "-O") == 0 && i + 1 < argc) {
-      output = argv[i + 1];
-      dump = true;
-      i++;
+    } else if (strcmp(argv[i], "-o") == 0 && i + 2 < argc) {
+      output = std::string(argv[i + 1]);
+      scale = std::stoi(argv[i + 2]);
+      i += 2;
+    } else if (strcmp(argv[i], "-O") == 0 && i + 3 < argc) {
+      output = std::string(argv[i + 1]);
+      frame_out = std::stoi(argv[i + 2]);
+      scale = std::stod(argv[i + 3]);
+      i += 3;
     } else {
-      usage();
       return false;
     }
   }

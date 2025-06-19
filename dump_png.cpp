@@ -1,17 +1,18 @@
 #include <cassert>
 #include <cstdio>
 #include <png.h>
+#include <string>
 
-void dump_png(unsigned int *data, int width, int height, const char *filename) {
-  FILE *file = fopen(filename, "wb");
+void dump_png(unsigned int *data, int width, int height,
+              const std::string &filename) {
+  FILE *file = fopen(filename.c_str(), "wb");
   assert(file);
 
   png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
   assert(png_ptr);
   png_infop info_ptr = png_create_info_struct(png_ptr);
   assert(info_ptr);
-  bool result = setjmp(png_jmpbuf(png_ptr));
-  assert(!result);
+  assert(!setjmp(png_jmpbuf(png_ptr)));
   png_init_io(png_ptr, file);
   int color_type = PNG_COLOR_TYPE_RGBA;
   png_set_IHDR(png_ptr, info_ptr, width, height, 8, color_type,
@@ -30,15 +31,13 @@ void dump_png(unsigned int *data, int width, int height, const char *filename) {
 }
 
 void read_png(unsigned int *&data, int &width, int &height,
-              const char *filename) {
-  FILE *file = fopen(filename, "rb");
+              const std::string &filename) {
+  FILE *file = fopen(filename.c_str(), "rb");
   assert(file);
 
   unsigned char header[8];
-  int num_read = fread(&header, 1, sizeof header, file);
-  assert(num_read == sizeof header);
-  int ret_sig = png_sig_cmp((png_bytep)header, 0, sizeof header);
-  assert(!ret_sig);
+  assert(fread(&header, 1, sizeof header, file) == sizeof header);
+  assert(!png_sig_cmp((png_bytep)header, 0, sizeof header));
   png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
   assert(png_ptr);
   png_infop info_ptr = png_create_info_struct(png_ptr);

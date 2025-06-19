@@ -5,6 +5,7 @@
 #include "shaders/shader.h"
 #include "util.h"
 #include <iostream>
+#include <omp.h>
 
 World::~World() {
   // delete objects
@@ -43,6 +44,7 @@ Hit World::closest_intersection(const Ray &ray) {
 }
 
 void World::render() {
+#pragma omp parallel for
   for (int i = 0; i < camera.number_pixels[0]; i++) {
     for (int j = 0; j < camera.number_pixels[1]; j++) {
       render_pixel(ivec2(i, j));

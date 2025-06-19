@@ -33,7 +33,7 @@ bool ssa(const std::stringstream &ss) {
 }
 
 bool parse_scene(World &world, int width, int height, double ar,
-                 const char *fn) {
+                 const std::string &fn) {
   std::ifstream f(fn);
   std::string b;
 

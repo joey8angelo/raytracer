@@ -4,42 +4,107 @@
 #include <iostream>
 #include <ncurses.h>
 #include <string>
+#include <vector>
 
-void image_to_window(unsigned int *data, bool *block, WINDOW *win, int width,
-                     int height);
-void dump_png(unsigned int *data, int width, int height, const char *filename);
+void image_to_window(const unsigned int *data, const std::vector<bool> &block,
+                     WINDOW *win, int width, int height);
+void dump_png(unsigned int *data, int width, int height,
+              const std::string &filename);
 int keyboard(World &world);
 void move_camera(World &world, int key);
 void rotate_camera(World &world, vec3 point, int key);
 void rot(vec3 &p, const vec3 &c, const vec3 &u, double theta);
-WINDOW *create_window(int wwidth, int wheight, int x, int y, int width,
-                      int height);
 
 class Ray;
 
-bool *block;
-
 auto prev_time = std::chrono::system_clock::now();
 
-// render loop for the world
-void render(World &world, int width, int height, double pixel_ar,
-            const char *output, bool dump) {
-  block = new bool[width * height];
-  for (int i = 0; i < width * height; i++) {
-    block[i] = false;
+class WindowManager {
+public:
+  std::vector<WINDOW *> windows;
+  std::vector<void (*)(WINDOW *, const World &)> window_updaters;
+  std::vector<bool> blocked;
+  const World &world;
+
+  explicit WindowManager(const World &world) : world(world) {
+    int width = world.camera.number_pixels[0];
+    int height = world.camera.number_pixels[1];
+    blocked.resize(width * height);
+    for (int i = 0; i < width * height; i++) {
+      blocked[i] = false;
+    }
   }
 
-  WINDOW *cam_win = create_window(20, 3, 0, 0, width, height);
-  mvwprintw(cam_win, 0, 1, "Camera Position ");
-  WINDOW *cam_look_win = create_window(20, 3, 0, 3, width, height);
-  mvwprintw(cam_look_win, 0, 1, "Camera Look Dir ");
-  WINDOW *fps_win = create_window(6, 3, 0, 6, width, height);
-  mvwprintw(fps_win, 0, 1, "FPS ");
+  ~WindowManager() {
+    for (auto win : windows) {
+      delwin(win);
+    }
+  }
+  WINDOW *create_window(int wwidth, int wheight, int x, int y,
+                        void (*updater)(WINDOW *, const World &) = nullptr) {
+    int width = world.camera.number_pixels[0];
+    int height = world.camera.number_pixels[1];
+    window_updaters.push_back(updater);
+    WINDOW *win = newwin(wheight, wwidth, y, x);
+    box(win, 0, 0);
+    windows.push_back(win);
 
-  prev_time = std::chrono::system_clock::now();
+    for (int i = 0; i < wwidth; i++) {
+      for (int j = 0; j < wheight; j++) {
+        int idx = (height - j - y) * width + i - width + x;
+        if (idx >= 0 && idx < width * height) {
+          blocked[idx] = true;
+        }
+      }
+    }
+    return win;
+  }
 
+  void refresh_windows() {
+    for (size_t i = 0; i < windows.size(); i++) {
+      if (window_updaters[i]) {
+        window_updaters[i](windows[i], world);
+      }
+      wrefresh(windows[i]);
+    }
+  }
+};
+
+// render loop for the world
+void render(World &world, const double &pixel_ar, const std::string &output,
+            const int &frame_out, const double &scale) {
+  int width = world.camera.number_pixels[0];
+  int height = world.camera.number_pixels[1];
   size_t frame = 0;
-  size_t dcount = 0;
+
+  WindowManager wm(world);
+
+  WINDOW *win =
+      wm.create_window(20, 3, 0, 0, [](WINDOW *win, const World &world) {
+        mvwprintw(win, 1, 1, "%.2f %.2f %.2f", world.camera.position[0],
+                  world.camera.position[1], world.camera.position[2]);
+      });
+  mvwprintw(win, 0, 1, "Camera Position ");
+
+  win = wm.create_window(20, 3, 0, 3, [](WINDOW *win, const World &world) {
+    mvwprintw(win, 1, 1, "%.2f %.2f %.2f", world.camera.look[0],
+              world.camera.look[1], world.camera.look[2]);
+  });
+  mvwprintw(win, 0, 1, "Camera Look Dir ");
+
+  win = wm.create_window(6, 3, 0, 6, [](WINDOW *win, const World &world) {
+    auto cur_time = std::chrono::system_clock::now();
+    static auto prev_time = cur_time;
+    static size_t frame = 0;
+    static size_t prev_frame = 0;
+    if (cur_time - prev_time >= std::chrono::seconds(1)) {
+      mvwprintw(win, 1, 1, "%-*zu", 4, frame - prev_frame);
+      prev_time = cur_time;
+      prev_frame = frame;
+    }
+    frame++;
+  });
+  mvwprintw(win, 0, 1, "FPS ");
 
   while (true) {
     // handle keyboard inputs
@@ -47,54 +112,29 @@ void render(World &world, int width, int height, double pixel_ar,
     if (k == -1)
       break;
 
-    // if we want to dump a sequence of images to every 10th frame
-    if (dump && dcount % 10 == 0) {
-      int c = 1;
+    // if we want to dump a sequence of images to every frame_out frame
+    if (frame_out != 0 && frame % frame_out == 0) {
       world.camera.set_resolution(
-          ivec2(width * c, height * c * (1 / pixel_ar)));
+          ivec2(width * scale, height * scale * (1 / pixel_ar)));
       world.render();
-      std::string nm = std::to_string(frame / 10);
+      std::string nm = std::to_string(frame);
       std::string zs = std::string(4 - nm.size(), '0');
-      std::string fn = std::string(output) + "_" + zs + nm + ".png";
-      dump_png(world.camera.image, width * c, height * c * (1 / pixel_ar),
-               fn.c_str());
+      std::string fn = output + "_" + zs + nm + ".png";
+      dump_png(world.camera.image, width * scale,
+               height * scale * (1 / pixel_ar), fn.c_str());
       world.camera.set_resolution(ivec2(width, height));
-      dcount = 0;
     }
 
     // render the world
     world.render();
     // render the camera image to stdscr
-    image_to_window(world.camera.image, block, stdscr, width, height);
-
-    // render info to camera windows
-    mvwprintw(cam_win, 1, 1, "%.2f %.2f %.2f", world.camera.position[0],
-              world.camera.position[1], world.camera.position[2]);
-    mvwprintw(cam_look_win, 1, 1, "%.2f %.2f %.2f", world.camera.look[0],
-              world.camera.look[1], world.camera.look[2]);
-
-    // render fps to fps window
-    auto cur_time = std::chrono::system_clock::now();
-    if (cur_time - prev_time >= std::chrono::seconds(1)) {
-      mvwprintw(fps_win, 1, 1, "%-*zu", 4, frame);
-      prev_time = cur_time;
-      frame = 0;
-    }
-
+    image_to_window(world.camera.image, wm.blocked, stdscr, width, height);
     // refresh windows
     refresh();
-    wrefresh(cam_win);
-    wrefresh(cam_look_win);
-    wrefresh(fps_win);
+    wm.refresh_windows();
 
     frame++;
-    dcount++;
   }
-
-  delete[] block;
-  delwin(cam_win);
-  delwin(cam_look_win);
-  delwin(fps_win);
 }
 
 int keyboard(World &world) {
@@ -208,21 +248,4 @@ void rot(vec3 &p, const vec3 &c, const vec3 &u, double theta) {
   double sin_theta = sin(theta);
   p = c + r * cos_theta + cross(u, r) * sin_theta +
       u * (dot(u, r) * (1 - cos_theta));
-}
-
-WINDOW *create_window(int wwidth, int wheight, int x, int y, int width,
-                      int height) {
-  WINDOW *win = newwin(wheight, wwidth, y, x);
-  box(win, 0, 0);
-
-  for (int i = 0; i < wwidth; i++) {
-    for (int j = 0; j < wheight; j++) {
-      int idx = (height - j - y) * width + i - width + x;
-      if (idx >= 0 && idx < width * height) {
-        block[idx] = true;
-      }
-    }
-  }
-
-  return win;
 }

@@ -4,7 +4,7 @@ CXX = g++
 # Compiler flags
 CXXFLAGS = -std=c++17 -I.
 LIBS = -lncurses -lpng
-RELEASE_FLAGS = -O3 -Wall -Werror 
+RELEASE_FLAGS = -O3 -Wall -Werror -fopenmp -DNDEBUG
 DEBUG_FLAGS = -g -O0
 
 # Source files
