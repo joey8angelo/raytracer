@@ -1,0 +1,64 @@
+    """,                                                                                                                                       
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                0000XXXXXXXXXPPPPP                                                             
+                                                       wwwwwwwwwwwww0000000000XXXXXXXXP                                                        
+                                                    oooooooooooooooowwwwwwwwwww0000000XXXXX                                                    
+                                                 IIIIIIIIIIIIIIIIIIIIIIooooooww0XR#**#PX0000000                                                
+                                              ++!!!!!!vvvvvvvvvvvccccccccIIIIIow0P*BBBBR0wwwwww000                                             
+                                           +++++!!!!!!vv:::::::~~::vvvvvvvvcccIIIow0XXXXwwooooowww00                                           
+                                         ::++++++++!!!::++++~~~~~~~~~~++:::vvccccccIIIIIIIIIIIIoooww0                                          
+                                         :+++++::::+!+++++!~~~~~~~~~~~~~++::vvvvcccccccccccccIIIIIIoww                                         
+                                        ::+++::vvv:+!!!!!!!~~~~~~~~~~~~~~++:vvvvvvvvvvvvvvvcccccccccIow                                        
+                                       ::+++++::+++!!!!!!!!~~~~~~~~~~~~~~~++:::::::::::::vvvvvvvvvvvvII                                        
+                                      :::++++++++!!!!!!!!!!!!!!~~~~~~!!!~~~+++:::::::::::::::::::::::vco                                       
+                                       ::+++++++!!!!!!++++++++!!!~~~!+:+!~~~+++++++~~~!+++++:++++++++:cIw                                      
+                                       ::+++++!!!!!!!!!++++++++++~~!!++:!~~+!!~~~~~IooIIIIIccvvvv!!cow0Xcw                                     
+                                       :+++++!!++!!!!!!+:::::::+:+!!!!!+::~vcIIIIIIow0*BBBBRwoIv~~o0XXXXXX                                     
+                                        ++++++++!!!!!!!!+vvvvv:~~v:!!!!!~vccc~~~~~~~~~~~~~~~~c~~~+::::000                                      
+                                        :::++++!!!!++!!~+:vvvv~~~ccc+!~:v~~~~~~~~~~~~~~~~~~~~~~~:v:::vvw                                       
+                                         cvv:::!!++:::~~~vcI~~~~~~oo+~+:+~~~~~~~~~~~~~~~~~~~~~!++:v~~::                                        
+                                           Iccvcc!!!!!:+!!~~~~~~~~~!~!++~~~~~~~~~~~~~~~~~~~~~++:::~~~~~                                        
+                                            ooIIIow0~~!oc:!!!!!!!!+vcv::+!~~~~~~~~~~~~~~~~~~+++::~~IoIv                                        
+                                             wwww0XX##+~~~~#0woowwwooIIcv:+!~~~~!!!!!!!~~~!!+++~~~~!Io                                         
+                                              00XX##**+!!~~~****XXX000wwoIcv:+++++::::+~~!!!++~~~~!+P                                          
+                                                      ++!!~~~~~~~~~PXXXXX0woIcv:vvvvv::++!!!+~~~~!!+                                           
+                                                      +:+!!~~~~~~~~~  PPPPX0woIcccvvv::++!+~~~~~~~~:                                           
+                                                       !!!!!~~~~~~~~~  ~~~~owooIcvv::++!!!++!+!~~~~o                                           
+                                                       !!!!!~~~~~~~~~  ~~~~~vcIcv:++!!!!!!++:++::+Io                                           
+                                                       !!!!!~~~~~~~~~~ ~~~~~~~~~~+!~~!!!!+++::+:::wo                                           
+                                                       !+++!!!!~~~~~~~~~~~~~~~~~~~~~~~~~!+++:::v:vwo                                           
+                                                       ::::::+++!!~~~~~~~~~~~~~~~~~~wwooIIccIIIoooR*                                           
+                                                        vvvvvvvv:::+~~~~~~~~~~~~~~~~~~~~~#R*#####R!o                                           
+                                                           IIIIIcccvv~~~~~~~~~~~~!+++:::+!!!!++:vX0                                            
+                                                              oooooIIc~~~~~~~~~~~~!++::vvccIIIoo00                                             
+                                                                 wwwwooI~~~~~~~~~~+++::vvccIIIIoX0                                             
+                                                                     0www~~~~~~~cvvvccIIIIccIIIwXR                                             
+                                                                        000~~~ooooooww000woIIIIwP*                                             
+                                                                            XXXX000XRBBBBP0woII0#R                                             
+                                                                                  PR*BBBBBPPR*B                                                
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               
+                                                                                                                                               

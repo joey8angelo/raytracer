@@ -1,6 +1,6 @@
 #include "set_colors.h"
 #include "vec.h"
-#include <iostream>
+#include <fstream>
 #include <ncurses.h>
 #include <string>
 #include <vector>
@@ -64,4 +64,22 @@ void image_to_window(const unsigned int *data, const std::vector<bool> &blocked,
       wattroff(win, COLOR_PAIR(color));
     }
   }
+}
+
+void image_to_txt(const unsigned int *data, int width, int height,
+                  const std::string &filename) {
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    return;
+  }
+  for (int i = 0; i < height; i++) {
+    for (int j = 0; j < width; j++) {
+      int color;
+      char ch;
+      get_color_and_char(data[(height - i) * width + j], color, ch);
+      file << ch;
+    }
+    file << std::endl;
+  }
+  file.close();
 }

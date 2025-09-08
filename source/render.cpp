@@ -1,13 +1,15 @@
+#include "config.h"
 #include "ray.h"
 #include "world.h"
 #include <chrono>
-#include <iostream>
 #include <ncurses.h>
 #include <string>
 #include <vector>
 
 void image_to_window(const unsigned int *data, const std::vector<bool> &block,
                      WINDOW *win, int width, int height);
+void image_to_txt(const unsigned int *data, int width, int height,
+                  const std::string &filename);
 void dump_png(unsigned int *data, int width, int height,
               const std::string &filename);
 int keyboard(World &world);
@@ -16,6 +18,7 @@ void rotate_camera(World &world, vec3 point, int key);
 void rot(vec3 &p, const vec3 &c, const vec3 &u, float theta);
 
 class Ray;
+struct RenderConfig;
 
 auto prev_time = std::chrono::system_clock::now();
 
@@ -71,8 +74,7 @@ public:
 };
 
 // render loop for the world
-void render(World &world, const float &pixel_ar, const std::string &output,
-            const int &frame_out, const float &scale) {
+void render(World &world, const RenderConfig &rconfig) {
   int width = world.camera.number_pixels[0];
   int height = world.camera.number_pixels[1];
   size_t frame = 0;
@@ -112,23 +114,42 @@ void render(World &world, const float &pixel_ar, const std::string &output,
     if (k == -1)
       break;
 
-    // if we want to dump a sequence of images to every frame_out frame
-    if (frame_out != 0 && frame % frame_out == 0) {
-      world.camera.set_resolution(
-          ivec2(width * scale, height * scale * (1 / pixel_ar)));
-      world.render();
-      std::string nm = std::to_string(frame);
-      std::string zs = std::string(4 - nm.size(), '0');
-      std::string fn = output + "_" + zs + nm + ".png";
-      dump_png(world.camera.image, width * scale,
-               height * scale * (1 / pixel_ar), fn.c_str());
-      world.camera.set_resolution(ivec2(width, height));
-    }
-
     // render the world
     world.render();
     // render the camera image to stdscr
     image_to_window(world.camera.image, wm.blocked, stdscr, width, height);
+
+    // Dump frame png
+    int frame_num = 0;
+    if (rconfig.frame_output_dir != "" &&
+        frame % rconfig.frame_out_interval == 0 &&
+        (frame_num = frame / rconfig.frame_out_interval) <
+            rconfig.max_out_frames) {
+      world.camera.set_resolution(
+          ivec2(width * rconfig.frame_out_scale,
+                height * rconfig.frame_out_scale * (1 / PIXEL_AR)));
+      world.render();
+      std::string nm = std::to_string(frame_num);
+      std::string zs = std::string(
+          std::to_string(rconfig.max_out_frames).size() - nm.size(), '0');
+      std::string fn = rconfig.frame_output_dir + "/" + zs + nm + ".png";
+      dump_png(world.camera.image, width * rconfig.frame_out_scale,
+               height * rconfig.frame_out_scale * (1 / PIXEL_AR), fn);
+      world.camera.set_resolution(ivec2(width, height));
+    }
+
+    // Dump text frame
+    if (rconfig.text_output_dir != "" &&
+        frame % rconfig.text_out_interval == 0 &&
+        (frame_num = frame / rconfig.text_out_interval) <
+            rconfig.max_text_frames) {
+      std::string nm = std::to_string(frame_num);
+      std::string zs = std::string(
+          std::to_string(rconfig.max_text_frames).size() - nm.size(), '0');
+      std::string fn = rconfig.text_output_dir + "/" + zs + nm + ".txt";
+      image_to_txt(world.camera.image, width, height, fn);
+    }
+
     // refresh windows
     refresh();
     wm.refresh_windows();

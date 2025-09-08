@@ -1,0 +1,12 @@
+color white 1 1 1
+color red 1 0 0
+phong_shader white_shader white white white 50
+mesh 0 0 0 0 0 0 source/objs/skull.obj white_shader
+point_light 1 -2 9 white 500
+point_light -3 3 1 red 80
+point_light 4 -1.5 -1.5 white 60
+point_light 0 -3 -9 white 800
+#point_light -4 -4 -1.5 white 90
+point_light 0 1 -2 red 60
+ambient_light white 0.2
+camera -1 -5 0.69 0 0 0 0 0 1 40
