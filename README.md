@@ -13,15 +13,18 @@ Basic phong and flat shaders
 Custom scene building
 
 ## Usage
--i input_scene: file where the scene is located
+-i <input_scene> Input scene file
 
--s scene_number: render the test scene under scenes/ts_scene_number.txt
+-s <scene_number> Test scene file number
 
--d width height debug_x debug_y: render once to debug.png with debug pixel coordinates
+-d <width> <height> <debug_x> <debug_y> Debug mode, outputs debug info for pixel (debug_x, debug_y) at resolution width x height, writes to debug.png
 
--o output_file scale: render the first frame at scaled resolution to the terminal to an output png
+-o <output_file> <scale> Output the first frame to output_file at resolution width*scale x height*scale
 
--O dump_file frame_i scale: render every ith frame to a file with dump_file_frame.png at scaled resolution 
+-O <output_path> <i> <scale> <max_frames> Output every ith frame to output_path at resolution width*scale x height*scale
 
+-t <output_dir> <i> <max_frames> Output every ith frame to output_dir until max_frames is reached
+
+Use the print_ascii.py script to print the ascii frames to the terminal in a loop
 ![Donut](ndonut.gif)
 ![Monkey](nmonkey.gif)
